@@ -13,7 +13,7 @@ from PiCN.Layers.ICNLayer import BaseICNDataStruct
 class PendingInterestTableEntry(object):
     """An entry in the Forwarding Information Base"""
 
-    def __init__(self, name: Name, faceid: int, interest:Interest = None, local_app: bool=False,
+    def __init__(self, name: Name, faceid: int, outgoing_face: int, interest:Interest = None, local_app: bool=False,
                  fib_entries_already_used: List[ForwardingInformationBaseEntry]=None, faces_already_nacked=None,
                  number_of_forwards=0):
         self.name = name
@@ -22,6 +22,13 @@ class PendingInterestTableEntry(object):
             self._faceids.extend(faceid)
         else:
             self._faceids.append(faceid)
+
+        self._outgoing_faces: List[int] = []
+        if isinstance(outgoing_face, list):
+            self._outgoing_faces.extend(outgoing_face)
+        else:
+            self._outgoing_faces.append(outgoing_face)
+
         self._timestamp = time.time()
         self._retransmits = 0
         self._local_app: List[bool]= []
@@ -61,6 +68,15 @@ class PendingInterestTableEntry(object):
     @faceids.setter
     def face_id(self, faceids):
         self._faceids = faceids
+
+    @property
+    def outgoing_faces(self):
+        return self._outgoing_faces
+
+    @outgoing_faces.setter
+    def outgoing_faces(self, faces):
+        self._outgoing_faces = faces
+
 
     @property
     def timestamp(self):
@@ -115,7 +131,7 @@ class BasePendingInterestTable(BaseICNDataStruct):
         self._pit_retransmits = pit_retransmits
 
     @abc.abstractmethod
-    def add_pit_entry(self, name: Name, faceid: int, interest: Interest = None, local_app: bool = False):
+    def add_pit_entry(self, name: Name, faceid: int, outgoing_face: int, interest: Interest = None, local_app: bool = False):
         """Add an new entry"""
 
     @abc.abstractmethod
