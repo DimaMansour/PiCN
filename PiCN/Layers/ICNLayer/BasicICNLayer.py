@@ -66,16 +66,19 @@ class BasicICNLayer(LayerProcess):
             self.queue_to_higher.put([face_id, cs_entry.content])
             return
         pit_entry = self.pit.find_pit_entry(interest.name)
-        self.pit.add_pit_entry(interest.name, face_id, interest, local_app=True)
+
         if pit_entry:
+            self.pit.add_interested_face(interest.name, face_id)
             fib_entry = self.fib.find_fib_entry(interest.name, incoming_faceids=pit_entry.faceids)
         else:
             fib_entry = self.fib.find_fib_entry(interest.name)
+
         if fib_entry is not None:
             self.pit.set_number_of_forwards(interest.name, 0)
             for fid in fib_entry.faceid:
                 try:
                     if not self.pit.test_faceid_was_nacked(interest.name, fid):
+                        self.pit.add_pit_entry(interest.name, face_id, fid, interest, local_app=True)
                         self.pit.increase_number_of_forwards(interest.name)
                         to_lower.put([fid, interest])
                 except:
@@ -105,19 +108,20 @@ class BasicICNLayer(LayerProcess):
         if pit_entry is not None:
             self.logger.info("Found in PIT, appending")
             self.pit.update_timestamp(pit_entry)
-            self.pit.add_pit_entry(interest.name, face_id, interest, local_app=from_local)
+            self.pit.add_interested_face(interest.name, face_id)
+            # self.pit.add_pit_entry(interest.name, face_id, interest, local_app=from_local)
             return
         if self._interest_to_app is True and to_higher is not None: #App layer support
             self.logger.info("Sending to higher Layer")
-            self.pit.add_pit_entry(interest.name, face_id, interest, local_app=from_local)
+            self.pit.add_pit_entry(interest.name, face_id, -1, interest, local_app=from_local)
             self.queue_to_higher.put([face_id, interest])
             return
         new_face_id = self.fib.find_fib_entry(interest.name, None, [face_id])
         if new_face_id is not None:
             self.logger.info("Found in FIB, forwarding to Face: " +  str(new_face_id.faceid))
-            self.pit.add_pit_entry(interest.name, face_id, interest, local_app=from_local)
             for fid in new_face_id.faceid:
                 if not self.pit.test_faceid_was_nacked(interest.name, fid):
+                    self.pit.add_pit_entry(interest.name, face_id, fid, interest, local_app=from_local)
                     self.pit.increase_number_of_forwards(interest.name)
                     to_lower.put([fid, interest])
             return

@@ -222,7 +222,7 @@ class test_BasicICNLayer(unittest.TestCase):
         name = Name("/test/data")
         content = Content("/test/data")
 
-        self.icn_layer.pit.add_pit_entry(name, from_face_id, None, None)
+        self.icn_layer.pit.add_pit_entry(name, from_face_id, content_in_face_id, None, None)
 
         self.queue1_icn_routing_up.put([content_in_face_id, content])
 
@@ -243,8 +243,8 @@ class test_BasicICNLayer(unittest.TestCase):
         name = Name("/test/data")
         content = Content("/test/data")
 
-        self.icn_layer.pit.add_pit_entry(name, from_face_id_1, None, False)
-        self.icn_layer.pit.add_pit_entry(name, from_face_id_2, None, False)
+        self.icn_layer.pit.add_pit_entry(name, from_face_id_1, content_in_face_id, None, False)
+        self.icn_layer.pit.add_pit_entry(name, from_face_id_2, content_in_face_id, None, False)
 
         self.queue1_icn_routing_up.put([content_in_face_id, content])
 
@@ -271,7 +271,7 @@ class test_BasicICNLayer(unittest.TestCase):
         interest = Interest(name)
 
         self.icn_layer.fib.add_fib_entry(name, [to_face_id])
-        self.icn_layer.pit.add_pit_entry(name, from_face_id_1, interest, False)
+        self.icn_layer.pit.add_pit_entry(name, from_face_id_1, to_face_id, interest, False)
         self.assertEqual(self.icn_layer.pit.get_container_size(), 1)
         self.assertEqual(self.icn_layer.pit.find_pit_entry(name).name, name)
 
@@ -374,7 +374,7 @@ class test_BasicICNLayer(unittest.TestCase):
         self.icn_layer.start_process()
         face_id = 1
         n = Name("/test/data")
-        self.icn_layer.pit.add_pit_entry(n, face_id)
+        self.icn_layer.pit.add_pit_entry(n, face_id, -1)
         self.assertEqual(self.icn_layer.pit.get_container_size(), 1)
         c = Content(n, "HelloWorld")
         self.icn_layer.queue_from_higher.put([0, c])
@@ -408,7 +408,7 @@ class test_BasicICNLayer(unittest.TestCase):
         face_id = -1
         from_face_id = 1
         n = Name("/test/data")
-        self.icn_layer.pit.add_pit_entry(n, face_id, interest=None, local_app=True)
+        self.icn_layer.pit.add_pit_entry(n, face_id, -1, interest=None, local_app=True)
         self.assertEqual(self.icn_layer.pit.get_container_size(), 1)
         c = Content(n, "HelloWorld")
         self.icn_layer.queue_from_lower.put([from_face_id, c])
@@ -453,7 +453,7 @@ class test_BasicICNLayer(unittest.TestCase):
         n = Name("/test/data")
         i = Interest(n)
         self.icn_layer.fib.add_fib_entry(n, [face_id], True)
-        self.icn_layer.pit.add_pit_entry(n, from_face_id, i, local_app=False)
+        self.icn_layer.pit.add_pit_entry(n, from_face_id, face_id, i, local_app=False)
         self.assertFalse(self.icn_layer.pit.find_pit_entry(n).local_app[0])
         self.icn_layer.queue_from_higher.put([0, i])
         try:
@@ -499,7 +499,7 @@ class test_BasicICNLayer(unittest.TestCase):
         n = Name("/test/data")
         i = Interest(n)
         self.icn_layer.fib.add_fib_entry(n, face_id, True)
-        self.icn_layer.pit.add_pit_entry(n, from_face_id, i, local_app=False)
+        self.icn_layer.pit.add_pit_entry(n, from_face_id, face_id[0], i, local_app=False)
         self.icn_layer.queue_from_lower.put([from_face_id, i])
         time.sleep(1)
         self.assertTrue(self.icn_layer.queue_to_higher.empty()) #--> deduplication by pit entry
@@ -569,7 +569,7 @@ class test_BasicICNLayer(unittest.TestCase):
         i1 = Interest(n1)
         fid_1 = 1
         nack_1 = Nack(n1, NackReason.NO_ROUTE, interest=i1)
-        self.icn_layer.pit.add_pit_entry(n1, fid_1, i1, False)
+        self.icn_layer.pit.add_pit_entry(n1, fid_1, -1, i1, False)
         self.icn_layer.queue_from_lower.put([2, nack_1])
         try:
             data = self.icn_layer.queue_to_lower.get(timeout=2.0)
@@ -588,7 +588,7 @@ class test_BasicICNLayer(unittest.TestCase):
         to_fib2 = 3
         to_fib3 = 4
         nack_1 = Nack(n1, NackReason.NO_ROUTE, interest=i1)
-        self.icn_layer.pit.add_pit_entry(n1, from_fid, i1, None)
+        self.icn_layer.pit.add_pit_entry(n1, from_fid, to_fib1, i1, None)
         self.icn_layer.fib.add_fib_entry(Name("/test"), [to_fib2])
         self.icn_layer.fib.add_fib_entry(Name("/test/data"), [to_fib3])
         self.icn_layer.fib.add_fib_entry(Name("/test/data/d1"), [to_fib1]) #assuning this entry was used first and is active when nack arrives

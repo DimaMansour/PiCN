@@ -13,7 +13,7 @@ from PiCN.Layers.ICNLayer import BaseICNDataStruct
 class PendingInterestTableEntry(object):
     """An entry in the Forwarding Information Base"""
 
-    def __init__(self, name: Name, faceid: int, outgoing_face: int, interest:Interest = None, local_app: bool=False,
+    def __init__(self, name: Name, faceid: int, outgoing_faces, interest:Interest = None, local_app: bool=False,
                  fib_entries_already_used: List[ForwardingInformationBaseEntry]=None, faces_already_nacked=None,
                  number_of_forwards=0):
         self.name = name
@@ -23,11 +23,11 @@ class PendingInterestTableEntry(object):
         else:
             self._faceids.append(faceid)
 
-        self._outgoing_faces: List[int] = []
-        if isinstance(outgoing_face, list):
-            self._outgoing_faces.extend(outgoing_face)
+        self.outgoing_faces: List[int] = []
+        if isinstance(outgoing_faces, list):
+            self.outgoing_faces.extend(outgoing_faces)
         else:
-            self._outgoing_faces.append(outgoing_face)
+            self.outgoing_faces.append(outgoing_faces)
 
         self._timestamp = time.time()
         self._retransmits = 0
@@ -68,15 +68,6 @@ class PendingInterestTableEntry(object):
     @faceids.setter
     def face_id(self, faceids):
         self._faceids = faceids
-
-    @property
-    def outgoing_faces(self):
-        return self._outgoing_faces
-
-    @outgoing_faces.setter
-    def outgoing_faces(self, faces):
-        self._outgoing_faces = faces
-
 
     @property
     def timestamp(self):
@@ -135,6 +126,11 @@ class BasePendingInterestTable(BaseICNDataStruct):
         """Add an new entry"""
 
     @abc.abstractmethod
+    def add_interested_face(self, name, face: int):
+        """update an existing entry by appending
+         the interested face to the faceids. If there is not entry, nothing happens."""
+
+    @abc.abstractmethod
     def find_pit_entry(self, name: Name) -> PendingInterestTableEntry:
         """Find an entry in the PIT"""
 
@@ -168,31 +164,37 @@ class BasePendingInterestTable(BaseICNDataStruct):
 
     def set_number_of_forwards(self, name, forwards):
         pit_entry = self.find_pit_entry(name)
-        self.remove_pit_entry(name)
-        pit_entry.number_of_forwards = forwards
-        self.append(pit_entry)
+        if pit_entry:
+            self.remove_pit_entry(name)
+            pit_entry.number_of_forwards = forwards
+            self.append(pit_entry)
 
     def increase_number_of_forwards(self, name):
         pit_entry = self.find_pit_entry(name)
-        self.remove_pit_entry(name)
-        pit_entry.number_of_forwards = pit_entry.number_of_forwards + 1
-        self.append(pit_entry)
+        if pit_entry:
+            self.remove_pit_entry(name)
+            pit_entry.number_of_forwards = pit_entry.number_of_forwards + 1
+            self.append(pit_entry)
 
     def decrease_number_of_forwards(self, name):
         pit_entry = self.find_pit_entry(name)
-        self.remove_pit_entry(name)
-        pit_entry.number_of_forwards = pit_entry.number_of_forwards - 1
-        self.append(pit_entry)
+        if pit_entry:
+            self.remove_pit_entry(name)
+            pit_entry.number_of_forwards = pit_entry.number_of_forwards - 1
+            self.append(pit_entry)
 
     def add_nacked_faceid(self, name, fid: int):
         pit_entry = self.find_pit_entry(name)
-        self.remove_pit_entry(name)
-        pit_entry.faces_already_nacked.append(fid)
-        self.append(pit_entry)
+        if pit_entry:
+            self.remove_pit_entry(name)
+            pit_entry.faces_already_nacked.append(fid)
+            self.append(pit_entry)
 
     def test_faceid_was_nacked(self, name, fid: int):
         pit_entry = self.find_pit_entry(name)
-        return (fid in pit_entry.faces_already_nacked)
+        if pit_entry:
+            return (fid in pit_entry.faces_already_nacked)
+        return False
 
     def set_pit_timeout(self, timeout: float):
         """set the timeout intervall for a pit entry
