@@ -26,11 +26,16 @@ class ForwardingInformationBaseMemoryPrefix(BaseForwardingInformationBase):
                 for faceid in fib_entry.faceid:
                     if not incoming_faceids or faceid not in incoming_faceids:
                         forward_faceids.append(faceid)
+                # Here we have a list of face ids that
+                #   - match the name fully
+                #   - not already used
+                #   - not in the interested faces
                 if len(forward_faceids) == 0:
                     continue
                 return ForwardingInformationBaseEntry(fib_entry.name, forward_faceids)
             components = components[:complen - 1]
         return None
+
 
     def add_fib_entry(self, name: Name, faceid: List[int], static: bool=False):
         assert (isinstance(faceid, List))
