@@ -139,3 +139,4 @@ class test_ForwardingInformationBaseMemoryPrefix(unittest.TestCase):
         self.fib.add_faceid_to_entry(Name("/test/bar"), 21)
         entry = self.fib.find_fib_entry(Name("/test/bar"))
         self.assertEqual([1337, 21], entry.faceid)
+

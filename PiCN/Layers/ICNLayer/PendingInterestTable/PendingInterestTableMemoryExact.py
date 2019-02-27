@@ -7,6 +7,8 @@ from PiCN.Layers.ICNLayer.PendingInterestTable.BasePendingInterestTable import B
     PendingInterestTableEntry
 from PiCN.Layers.ICNLayer.ForwardingInformationBase import ForwardingInformationBaseEntry
 from PiCN.Packets import Interest, Name
+from typing import List, Dict
+
 
 class PendingInterstTableMemoryExact(BasePendingInterestTable):
     """in-memory Pending Interest Table using exact prefix matching"""
@@ -46,6 +48,30 @@ class PendingInterstTableMemoryExact(BasePendingInterestTable):
                 self.container.append(pit_entry)
                 return
         self.container.append(PendingInterestTableEntry(name, faceid, outgoing_face, interest, local_app))
+
+    # this function returns a dict of fib available faces per name and the occupation of each one collected from PIT
+    def occupancy_available_faces_per_name(self, fib_entry: ForwardingInformationBaseEntry) -> Dict:
+        dict_of_faces_with_occupancy ={}
+        fib_components = fib_entry.name.string_components
+        for fib_face in fib_entry.faceid:
+            number_of_appearance_in_pit = 0
+            for pit_entry in self.container:
+                if fib_face not in pit_entry.outgoing_faces:
+                    continue
+
+                pit_name_components = pit_entry.name.string_components
+                full_match = True
+                for i in range(0, len(fib_components))  :
+                    if fib_components[i] != pit_name_components[i]:
+                        full_match = False
+                        break
+
+                if full_match:
+                    number_of_appearance_in_pit += 1
+
+            dict_of_faces_with_occupancy[fib_face] = number_of_appearance_in_pit
+        return dict_of_faces_with_occupancy
+
 
     def remove_pit_entry(self, name: Name):
         to_remove =[]

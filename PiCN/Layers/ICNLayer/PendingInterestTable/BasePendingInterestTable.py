@@ -3,7 +3,7 @@
 import abc
 import multiprocessing
 import time
-from typing import List
+from typing import List, Dict
 
 from PiCN.Packets import Interest, Name
 from PiCN.Layers.ICNLayer.ForwardingInformationBase import ForwardingInformationBaseEntry
@@ -161,6 +161,13 @@ class BasePendingInterestTable(BaseICNDataStruct):
     @abc.abstractmethod
     def get_already_used_pit_entries(self, name: Name):
         """Get already used fib entries"""
+
+
+    #@abc.abstractmethod
+    def occupancy_available_faces_per_name(self, fib_entry: ForwardingInformationBaseEntry) -> Dict:
+        """This function takes a fib entry which matches the name with the availables faces
+    and return the occupancy of each face organized in a dictionary (it returns a dictionary of faces and its occupation"""
+
 
     def set_number_of_forwards(self, name, forwards):
         pit_entry = self.find_pit_entry(name)

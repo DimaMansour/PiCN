@@ -9,7 +9,6 @@ from PiCN.Packets import Name
 
 
 class test_PendingInterstTableMemoryExact(unittest.TestCase):
-
     def setUp(self):
         self.manager = multiprocessing.Manager()
         self.pit: PendingInterstTableMemoryExact = PendingInterstTableMemoryExact()
@@ -123,3 +122,32 @@ class test_PendingInterstTableMemoryExact(unittest.TestCase):
         self.pit.add_interested_face(name, fid2)
         pit_entry = self.pit.find_pit_entry(name)
         self.assertEqual(pit_entry.faceids, [fid, fid2])
+
+    def test_occupancy_available_faces_per_name(self):
+        name = Name("/a/b")
+        fib_entry = ForwardingInformationBaseEntry(name, 1, False)
+        fib_entry_faces = [1,2,3]
+        fib_entry.faceid = fib_entry_faces
+
+        pit_name1 = Name("/a/b")
+        pit_name2 = Name("/x/y/z")
+        pit_name3 = Name("/m/n")
+        pit_name4 = Name("/a/b/c")
+        pit_name5 = Name("/l/o")
+        pit_name6 = Name("/a/b/c/d")
+
+        self.pit.add_pit_entry(pit_name1, 7, 1, None, False)
+        self.pit.add_pit_entry(pit_name2, 5, 1, None, False)
+        self.pit.add_pit_entry(pit_name3, 6, 3, None, False)
+        self.pit.add_pit_entry(pit_name4, 8, 1, None, False)
+        self.pit.add_pit_entry(pit_name5, 9, 2, None, False)
+        self.pit.add_pit_entry(pit_name6, 4, 2, None, False)
+
+        result = self.pit.occupancy_available_faces_per_name(fib_entry)
+        print(result[1])
+        print(result[2])
+        print(result[3])
+        self.assertEqual(result[1], 2)
+        self.assertEqual(result[2], 1)
+        self.assertEqual(result[3], 0)
+        self.assertEqual(len(result), 3)
