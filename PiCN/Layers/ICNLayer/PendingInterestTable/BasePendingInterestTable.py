@@ -131,6 +131,10 @@ class BasePendingInterestTable(BaseICNDataStruct):
          the interested face to the faceids. If there is not entry, nothing happens."""
 
     @abc.abstractmethod
+    def add_outgoing_face(self, name, face: int):
+        """This method an existing entry by appending
+         the face to the outgoing_faces. If there is not entry, nothing happens."""
+    @abc.abstractmethod
     def find_pit_entry(self, name: Name) -> PendingInterestTableEntry:
         """Find an entry in the PIT"""
 

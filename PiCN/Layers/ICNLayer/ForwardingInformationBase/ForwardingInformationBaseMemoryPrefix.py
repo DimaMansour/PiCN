@@ -12,17 +12,20 @@ class ForwardingInformationBaseMemoryPrefix(BaseForwardingInformationBase):
     def __init__(self):
         super().__init__()
 
-    def find_fib_entry(self, name: Name, already_used: List[ForwardingInformationBaseEntry] = None,
+    def find_fib_entry(self, name: Name, already_used: List[int] = None,
                        incoming_faceids: List[int]=None) -> ForwardingInformationBaseEntry:
         components = name.components[:]
         for i in range(0, len(name.components)):
             complen = len(components)
             for fib_entry in self._container:
-                if already_used and fib_entry in already_used:
-                    continue
+                # if already_used and fib_entry in already_used:
+                #     continue
                 forward_faceids = []
                 if fib_entry.name.components != components:
                     continue
+
+                #TODO here you should check if all the faces in this fib_entry are used
+
                 for faceid in fib_entry.faceid:
                     if not incoming_faceids or faceid not in incoming_faceids:
                         forward_faceids.append(faceid)

@@ -75,12 +75,17 @@ class BasicICNLayer(LayerProcess):
 
         if fib_entry is not None:
             self.pit.set_number_of_forwards(interest.name, 0)
-            for fid in fib_entry.faceid:
+            pit_occupancy = self.pit.occupancy_available_faces_per_name(fib_entry)
+            sorted_pit_occupancy = sorted(pit_occupancy.items(), key=lambda kv: kv[1])
+            faces_sorted_by_occupancy = list(map(lambda kv: kv[0], sorted_pit_occupancy))
+
+            for fid in faces_sorted_by_occupancy:
                 try:
                     if not self.pit.test_faceid_was_nacked(interest.name, fid):
                         self.pit.add_pit_entry(interest.name, face_id, fid, interest, local_app=True)
                         self.pit.increase_number_of_forwards(interest.name)
                         to_lower.put([fid, interest])
+                        break
                 except:
                     pass
         else:
@@ -116,14 +121,19 @@ class BasicICNLayer(LayerProcess):
             self.pit.add_pit_entry(interest.name, face_id, -1, interest, local_app=from_local)
             self.queue_to_higher.put([face_id, interest])
             return
-        new_face_id = self.fib.find_fib_entry(interest.name, None, [face_id])
-        if new_face_id is not None:
-            self.logger.info("Found in FIB, forwarding to Face: " +  str(new_face_id.faceid))
-            for fid in new_face_id.faceid:
+        matching_fib_entry = self.fib.find_fib_entry(interest.name, None, [face_id])
+        if matching_fib_entry is not None:
+            self.logger.info("Found in FIB, forwarding to Face: " +  str(matching_fib_entry.faceid))
+            pit_occupancy = self.pit.occupancy_available_faces_per_name(matching_fib_entry)
+            sorted_pit_occupancy = sorted(pit_occupancy.items(), key=lambda kv: kv[1])
+            faces_sorted_by_occupancy = list(map(lambda kv: kv[0], sorted_pit_occupancy))
+
+            for fid in faces_sorted_by_occupancy:
                 if not self.pit.test_faceid_was_nacked(interest.name, fid):
                     self.pit.add_pit_entry(interest.name, face_id, fid, interest, local_app=from_local)
                     self.pit.increase_number_of_forwards(interest.name)
                     to_lower.put([fid, interest])
+                    break
             return
         self.logger.info("No FIB entry, sending Nack")
         nack = Nack(interest.name, NackReason.NO_ROUTE, interest=interest)
@@ -164,6 +174,7 @@ class BasicICNLayer(LayerProcess):
                 self.pit.decrease_number_of_forwards(nack.name)
                 return
             self.pit.set_number_of_forwards(nack.name, 0)
+            #TODO change here the strategy of getting the next FIB entry
             cur_fib_entry = self.fib.find_fib_entry(nack.name, cur_pit_entry.fib_entries_already_used, cur_pit_entry.faceids) #current entry
             self.pit.add_used_fib_entry(nack.name, cur_fib_entry) #add current entry to used list, modiefies pit entry in pit
             pit_entry = self.pit.find_pit_entry(nack.name) #read modified entry from pit
@@ -195,10 +206,16 @@ class BasicICNLayer(LayerProcess):
                     self.pit.append(pit_entry)
             else:
                 self.logger.info("Try using next FIB path with FaceID: " + str(fib_entry.faceid))
-                for fid in fib_entry.faceid:
+                pit_occupancy = self.pit.occupancy_available_faces_per_name(fib_entry)
+                sorted_pit_occupancy = sorted(pit_occupancy.items(), key=lambda kv: kv[1])
+                faces_sorted_by_occupancy = list(map(lambda kv: kv[0], sorted_pit_occupancy))
+                for fid in faces_sorted_by_occupancy:
                     if not self.pit.test_faceid_was_nacked(pit_entry.name, fid):
+                        self.pit.update_timestamp(pit_entry)
+                        self.pit.add_outgoing_face(pit_entry.name, fid)
                         self.pit.increase_number_of_forwards(pit_entry.name)
                         to_lower.put([fid, pit_entry.interest])
+                        break
 
     def ageing(self):
         """Ageing the data structs"""

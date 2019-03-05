@@ -28,6 +28,18 @@ class PendingInterstTableMemoryExact(BasePendingInterestTable):
                     return
             return
 
+    def add_outgoing_face(self, name, face: int):
+        for pit_entry in self.container:
+            if pit_entry.name == name:
+                if face in pit_entry.outgoing_faces:
+                    return
+                else:
+                    self.container.remove(pit_entry)
+                    pit_entry.outgoing_faces.append(face)
+                    self.container.append(pit_entry)
+                    return
+            return
+
     def add_pit_entry(self, name, faceid: int, outgoing_face: int, interest: Interest = None, local_app = False):
         for pit_entry in self.container:
             if pit_entry.name == name:
@@ -70,6 +82,7 @@ class PendingInterstTableMemoryExact(BasePendingInterestTable):
                     number_of_appearance_in_pit += 1
 
             dict_of_faces_with_occupancy[fib_face] = number_of_appearance_in_pit
+
         return dict_of_faces_with_occupancy
 
 
@@ -100,6 +113,7 @@ class PendingInterstTableMemoryExact(BasePendingInterestTable):
         new_entry.faces_already_nacked = pit_entry.faces_already_nacked
         self.container.append(new_entry)
 
+    #TODO this should be changed to add_used_face_id
     def add_used_fib_entry(self, name: Name, used_fib_entry: ForwardingInformationBaseEntry):
         pit_entry = self.find_pit_entry(name)
         self.container.remove(pit_entry)
