@@ -84,6 +84,7 @@ class BasicICNLayer(LayerProcess):
                     if not self.pit.test_faceid_was_nacked(interest.name, fid):
                         self.pit.add_pit_entry(interest.name, face_id, fid, interest, local_app=True)
                         self.pit.increase_number_of_forwards(interest.name)
+                        self.pit.add_used_fib_face(interest.name, [fid])
                         to_lower.put([fid, interest])
                         break
                 except:
@@ -131,6 +132,7 @@ class BasicICNLayer(LayerProcess):
             for fid in faces_sorted_by_occupancy:
                 if not self.pit.test_faceid_was_nacked(interest.name, fid):
                     self.pit.add_pit_entry(interest.name, face_id, fid, interest, local_app=from_local)
+                    self.pit.add_used_fib_face(interest.name, [fid])
                     self.pit.increase_number_of_forwards(interest.name)
                     to_lower.put([fid, interest])
                     break
@@ -158,7 +160,7 @@ class BasicICNLayer(LayerProcess):
                     to_lower.put([pit_entry.faceids[i], content])
             self.pit.remove_pit_entry(pit_entry.name)
             self.cs.add_content_object(content)
-
+    #TODO CHECK
     def handle_nack(self, face_id: int, nack: Nack, to_lower: multiprocessing.Queue,
                     to_higher: multiprocessing.Queue, from_local: bool = False):
         self.logger.info("Handling NACK: " + str(nack.name) + " Reason: " + str(nack.reason) + ", From FaceID: " +
@@ -175,10 +177,13 @@ class BasicICNLayer(LayerProcess):
                 return
             self.pit.set_number_of_forwards(nack.name, 0)
             #TODO change here the strategy of getting the next FIB entry
-            cur_fib_entry = self.fib.find_fib_entry(nack.name, cur_pit_entry.fib_entries_already_used, cur_pit_entry.faceids) #current entry
-            self.pit.add_used_fib_entry(nack.name, cur_fib_entry) #add current entry to used list, modiefies pit entry in pit
+            cur_fib_entry = self.fib.find_fib_entry(nack.name, cur_pit_entry.fib_faces_already_used, cur_pit_entry.faceids) #current entry
+            # for fib_face in cur_fib_entry.faceid:
+            #     if fib_face in cur_pit_entry.fib_faces_already_used:
+            #         continue
+            # self.pit.add_used_fib_face(nack.name,cur_pit_entry.fib_faces_already_used) #add current face to used list, modiefies pit entry in pit
             pit_entry = self.pit.find_pit_entry(nack.name) #read modified entry from pit
-            fib_entry = self.fib.find_fib_entry(nack.name, pit_entry.fib_entries_already_used, pit_entry.faceids) #read new fib entry
+            fib_entry = self.fib.find_fib_entry(nack.name,pit_entry.fib_faces_already_used, pit_entry.faceids) #read new fib entry
             if fib_entry is None or fib_entry.faceid == [face_id]: #FIXME WHAT IS THE RIGHT CONDITION HERE?
                 if self._interest_to_app and not from_local and 'THUNK' in str(nack.name):
                     self.logger.info("Sending Thunk Nack to upper")
@@ -204,6 +209,7 @@ class BasicICNLayer(LayerProcess):
                         del pit_entry.face_id[i]
                         del pit_entry.local_app[i]
                     self.pit.append(pit_entry)
+
             else:
                 self.logger.info("Try using next FIB path with FaceID: " + str(fib_entry.faceid))
                 pit_occupancy = self.pit.occupancy_available_faces_per_name(fib_entry)
@@ -214,6 +220,7 @@ class BasicICNLayer(LayerProcess):
                         self.pit.update_timestamp(pit_entry)
                         self.pit.add_outgoing_face(pit_entry.name, fid)
                         self.pit.increase_number_of_forwards(pit_entry.name)
+                        self.pit.add_used_fib_face(pit_entry.name, [fid])
                         to_lower.put([fid, pit_entry.interest])
                         break
 
@@ -224,7 +231,7 @@ class BasicICNLayer(LayerProcess):
             #PIT ageing
             retransmits, removed_pit_entries = self.pit.ageing()
             for pit_entry in retransmits:
-                fib_entry = self.fib.find_fib_entry(pit_entry.name, pit_entry.fib_entries_already_used, pit_entry.faceids)
+                fib_entry = self.fib.find_fib_entry(pit_entry.name, pit_entry.fib_faces_already_used, pit_entry.faceids)
                 if not fib_entry:
                     continue
                 for fid in fib_entry.faceid:

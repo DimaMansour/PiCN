@@ -60,6 +60,8 @@ class PendingInterstTableMemoryExact(BasePendingInterestTable):
                 self.container.append(pit_entry)
                 return
         self.container.append(PendingInterestTableEntry(name, faceid, outgoing_face, interest, local_app))
+        # TODO check if this is a good idea to add the used face immediately on creation
+        # self.add_used_fib_face(name, [outgoing_face])
 
     # this function returns a dict of fib available faces per name and the occupation of each one collected from PIT
     def occupancy_available_faces_per_name(self, fib_entry: ForwardingInformationBaseEntry) -> Dict:
@@ -107,22 +109,22 @@ class PendingInterstTableMemoryExact(BasePendingInterestTable):
                                               outgoing_faces=pit_entry.outgoing_faces,
                                               interest=pit_entry.interest,
                                               local_app=pit_entry.local_app,
-                                              fib_entries_already_used=pit_entry.fib_entries_already_used,
+                                              fib_faces_already_used=pit_entry.fib_faces_already_used,
                                               faces_already_nacked=pit_entry.faces_already_nacked,
                                               number_of_forwards=pit_entry.number_of_forwards)
         new_entry.faces_already_nacked = pit_entry.faces_already_nacked
         self.container.append(new_entry)
 
     #TODO this should be changed to add_used_face_id
-    def add_used_fib_entry(self, name: Name, used_fib_entry: ForwardingInformationBaseEntry):
+    def add_used_fib_face(self, name: Name, used_fib_face: List[int]):
         pit_entry = self.find_pit_entry(name)
         self.container.remove(pit_entry)
-        pit_entry.fib_entries_already_used.append(used_fib_entry)
+        pit_entry.fib_faces_already_used.extend(used_fib_face)
         self.container.append(pit_entry)
 
     def get_already_used_pit_entries(self, name: Name):
         pit_entry = self.find_pit_entry(name)
-        return pit_entry.fib_entries_already_used
+        return pit_entry.fib_faces_already_used
 
     def append(self, entry):
         self.container.append(entry)

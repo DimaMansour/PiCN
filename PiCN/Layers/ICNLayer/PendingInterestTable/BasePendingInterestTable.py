@@ -14,7 +14,7 @@ class PendingInterestTableEntry(object):
     """An entry in the Forwarding Information Base"""
 
     def __init__(self, name: Name, faceid: int, outgoing_faces, interest:Interest = None, local_app: bool=False,
-                 fib_entries_already_used: List[ForwardingInformationBaseEntry]=None, faces_already_nacked=None,
+                 fib_faces_already_used: List[int]=None, faces_already_nacked=None,
                  number_of_forwards=0):
         self.name = name
         self._faceids: List[int] = []
@@ -37,10 +37,10 @@ class PendingInterestTableEntry(object):
         else:
             self._local_app.append(local_app)
         self._interest = interest
-        if fib_entries_already_used: #default parameter is not [] but None and this if else is here because [] as default parameter leads to a strange behavior
-            self._fib_entries_already_used: List[ForwardingInformationBaseEntry] = fib_entries_already_used
+        if fib_faces_already_used: #default parameter is not [] but None and this if else is here because [] as default parameter leads to a strange behavior
+            self._fib_faces_already_used: List[int] = fib_faces_already_used
         else:
-            self._fib_entries_already_used: List[ForwardingInformationBaseEntry] = []
+            self._fib_faces_already_used: List[int] = []
         if faces_already_nacked:
             self.faces_already_nacked = faces_already_nacked
         else:
@@ -102,12 +102,12 @@ class PendingInterestTableEntry(object):
         self._interest = interest
 
     @property
-    def fib_entries_already_used(self):
-        return self._fib_entries_already_used
+    def fib_faces_already_used(self):
+        return self._fib_faces_already_used
 
-    @fib_entries_already_used.setter
-    def fib_entries_already_used(self, fib_entries_already_used):
-        self._fib_entries_already_used = fib_entries_already_used
+    @fib_faces_already_used.setter
+    def fib_faces_already_used(self, fib_faces_already_used):
+        self._fib_faces_already_used = fib_faces_already_used
 
 
 class BasePendingInterestTable(BaseICNDataStruct):
@@ -147,8 +147,8 @@ class BasePendingInterestTable(BaseICNDataStruct):
         """Update Timestamp of a PIT Entry"""
 
     @abc.abstractmethod
-    def add_used_fib_entry(self, name: Name, used_fib_entry: ForwardingInformationBaseEntry):
-        """Add a used fib entry to the already used fib entries"""
+    def add_used_fib_face(self, name: Name, used_fib_face: List[int]):
+        """Add a used fib entry to the already used fib faces"""
 
     @abc.abstractmethod
     def ageing(self) -> (List[PendingInterestTableEntry], List[PendingInterestTableEntry]):

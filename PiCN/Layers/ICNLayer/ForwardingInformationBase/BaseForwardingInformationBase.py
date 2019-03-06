@@ -67,7 +67,7 @@ class BaseForwardingInformationBase(BaseICNDataStruct):
         """Remove an entry from the FIB"""
 
     @abc.abstractmethod
-    def find_fib_entry(self, name: Name, already_used: List[ForwardingInformationBaseEntry] = None,
+    def find_fib_entry(self, name: Name, already_used: List[int] = None,
                        incoming_faceids: List[int] = None) \
             ->ForwardingInformationBaseEntry:
         """Find an entry in the FIB"""
