@@ -93,7 +93,7 @@ class test_ForwardingInformationBaseMemoryPrefix(unittest.TestCase):
         self.fib.remove_fib_entry(name)
     #TODO CHECK
     def test_get_already_used_fib_face(self):
-        """Test to get a fib entry if there are alreay used entries"""
+        """Test to get a fib entry if there are alreay used all faces of another one"""
         fid1 = [1]
         fid2 = [2]
         fid3 = [3]
@@ -108,19 +108,19 @@ class test_ForwardingInformationBaseMemoryPrefix(unittest.TestCase):
         #test best match
         fib_entry = self.fib.find_fib_entry(iname)
         self.assertEqual(fib_entry.faceid, fid1)
-        already_used.append(fib_entry.faceid)
+        already_used.extend(fib_entry.faceid)
         print(already_used)
         # test 2nd best match
         fib_entry = self.fib.find_fib_entry(iname, already_used)
         print(fib_entry.name)
         self.assertEqual(fib_entry.faceid, fid3)
-        already_used.append(fib_entry.faceid)
+        already_used.extend(fib_entry.faceid)
         print(already_used)
         # # test 3rd best match
         fib_entry = self.fib.find_fib_entry(iname, already_used)
         print(fib_entry.name)
         self.assertEqual(fib_entry.faceid, fid2)
-        already_used.append(fib_entry.faceid)
+        already_used.extend(fib_entry.faceid)
         print(already_used)
         # test no match anymore best match
         fib_entry = self.fib.find_fib_entry(iname, already_used)
