@@ -650,10 +650,13 @@ class test_BasicICNLayer(unittest.TestCase):
         self.assertTrue(self.icn_layer.queue_to_lower.empty())
 
         self.icn_layer.queue_from_lower.put([3, n1])
-        d3 = self.icn_layer.queue_to_lower.get(timeout=4.0)
+        try:
+            d3 = self.icn_layer.queue_to_lower.get(timeout=4.0)
+        except:
+            self.fail()
         print(d3)
         self.assertEqual([4, i1], d3)
-        #
+        ##
         #
         #
         # self.assertTrue(self.icn_layer.queue_to_lower.empty())
@@ -662,102 +665,71 @@ class test_BasicICNLayer(unittest.TestCase):
         # d3 = self.icn_layer.queue_to_lower.get(timeout=2.0)
         # self.assertEqual([1, n1], d3)
 
-    #TODO Fix the error
-    # def test_multicast_and_nack_handling_with_retransmit(self):
-    #     """Test if a multicast works, and if the nack counter for the multicast works"""
-    #
-    #     i1 = Interest("/test/data")
-    #     n1 = Nack(i1.name, NackReason.NO_CONTENT, i1)
-    #
-    #     self.icn_layer.start_process()
-    #
-    #     self.icn_layer.fib.add_fib_entry(i1.name, [2,3])
-    #
-    #     self.icn_layer.queue_from_lower.put([1, i1])
-    #
-    #     d1 = self.icn_layer.queue_to_lower.get(timeout=2.0)
-    #     d2 = self.icn_layer.queue_to_lower.get(timeout=2.0)
-    #
-    #     self.assertEqual([2, i1], d1)
-    #     self.assertEqual([3, i1], d2)
-    #
-    #     self.icn_layer.queue_from_lower.put([3, n1])
-    #     self.assertTrue(self.icn_layer.queue_to_lower.empty())
-    #
-    #     self.icn_layer.ageing()
-    #     d3 = self.icn_layer.queue_to_lower.get(timeout=2.0)
-    #     self.assertEqual([2, i1], d3)
-    #
-    #
-    #     self.icn_layer.queue_from_lower.put([2, n1])
-    #     d4 = self.icn_layer.queue_to_lower.get(timeout=2.0)
-    #     self.assertEqual([1, n1], d4)
+    def test_communicating_vessels_forwarding_strategy(self):
+        """This function test the whole idea of forwarding strategy with multiple PIT entries
+         and multiple FIB entries with multiple matches in PIT and FIB and also it checks the NACK handler in case of one face was nacked in a fib entry or all faces
+          of a fib entry was nacked"""
+
+        ab_name = Name("/a/b")
+        i1 = Interest("/a/b/x")
+        i2 = Interest("/a/b/y")
+        i3 = Interest("/a/b/z")
+        i4 = Interest("/a/b/w")
+        i5 = Interest("/a/b/k")
+
+
+        i6 = Interest("/x/y")
+        i7 = Interest("/x")
+        i8 = Interest("/m/n")
+        i9 = Interest("/o/p")
+
+        n1 = Nack(i1.name, NackReason.NO_CONTENT, i1)
 
 
 
+        self.icn_layer.start_process()
+        self.icn_layer.fib.add_fib_entry(ab_name, [1, 2, 3])
+
+        self.icn_layer.fib.add_fib_entry(i6.name, [1, 4])
+        self.icn_layer.fib.add_fib_entry(i7.name, [2, 3])
+        self.icn_layer.fib.add_fib_entry(i8.name, [1, 5])
+
+        self.icn_layer.queue_from_lower.put([10, i1])
+        d1 = self.icn_layer.queue_to_lower.get(timeout=2.0)
+        pit_entry = self.icn_layer.pit.find_pit_entry(i1.name)
+        self.assertEqual([1], pit_entry.outgoing_faces)
+
+        self.icn_layer.queue_from_lower.put([10, i2])
+        d1 = self.icn_layer.queue_to_lower.get(timeout=2.0)
+        pit_entry = self.icn_layer.pit.find_pit_entry(i2.name)
+        self.assertEqual([2], pit_entry.outgoing_faces)
+
+        self.icn_layer.queue_from_lower.put([10, i6])
+        d1 = self.icn_layer.queue_to_lower.get(timeout=2.0)
+        self.icn_layer.queue_from_lower.put([10, i7])
+        d1 = self.icn_layer.queue_to_lower.get(timeout=2.0)
+        self.icn_layer.queue_from_lower.put([10, i8])
+        d1 = self.icn_layer.queue_to_lower.get(timeout=2.0)
+        self.icn_layer.queue_from_lower.put([10, i9])
+        d1 = self.icn_layer.queue_to_lower.get(timeout=2.0)
+
+
+        self.icn_layer.queue_from_lower.put([10, i3])
+        d1 = self.icn_layer.queue_to_lower.get(timeout=2.0)
+        pit_entry = self.icn_layer.pit.find_pit_entry(i3.name)
+        self.assertEqual([3], pit_entry.outgoing_faces)
 
 
 
-    # def test_nack_after_pit_timeout(self): #test invalid because not sending nacks after pit timeout anymore
-    #     i1 = Interest("/test/data")
-    #     n1 = Nack(i1.name, NackReason.PIT_TIMEOUT, i1)
-    #
-    #     self.icn_layer.fib.add_fib_entry(Name("/test"), [3,7])
-    #
-    #     self.icn_layer.start_process()
-    #     self.icn_layer.ageing()
-    #
-    #     self.icn_layer.queue_from_lower.put([1, i1])
-    #
-    #     r1 = self.icn_layer._queue_to_lower.get(timeout=8)
-    #     self.assertEqual(r1, [3, i1])
-    #     r2 = self.icn_layer._queue_to_lower.get(timeout=8)
-    #     self.assertEqual(r2, [7, i1])
-    #     r1 = self.icn_layer._queue_to_lower.get(timeout=8)
-    #     self.assertEqual(r1, [3, i1])
-    #     r2 = self.icn_layer._queue_to_lower.get(timeout=8)
-    #     self.assertEqual(r2, [7, i1])
-    #     r1 = self.icn_layer._queue_to_lower.get(timeout=8)
-    #     self.assertEqual(r1, [3, i1])
-    #     r2 = self.icn_layer._queue_to_lower.get(timeout=8)
-    #     self.assertEqual(r2, [7, i1])
-    #     r1 = self.icn_layer._queue_to_lower.get(timeout=8)
-    #     self.assertEqual(r1, [3, i1])
-    #     r2 = self.icn_layer._queue_to_lower.get(timeout=8)
-    #     self.assertEqual(r2, [7, i1])
-    #
-    #     nack = self.icn_layer._queue_to_lower.get(timeout=8)
-    #     self.assertEqual(nack, [1, n1])
+        self.icn_layer.queue_from_lower.put([10, i4])
+        d1 = self.icn_layer.queue_to_lower.get(timeout=2.0)
+        pit_entry = self.icn_layer.pit.find_pit_entry(i4.name)
+        self.assertEqual([1], pit_entry.outgoing_faces)
 
-    # def test_nack_after_pit_timeout_local_app(self): #test invalid because not sending nacks after pit timeout anymore
-    #     i1 = Interest("/test/data")
-    #     n1 = Nack(i1.name, NackReason.PIT_TIMEOUT, i1)
-    #
-    #     self.icn_layer.fib.add_fib_entry(Name("/test"), [3,7])
-    #     self.icn_layer.queue_from_higher = multiprocessing.Queue()
-    #     self.icn_layer.queue_to_higher = multiprocessing.Queue()
-    #
-    #     self.icn_layer.start_process()
-    #     self.icn_layer.ageing()
-    #
-    #     self.icn_layer.queue_from_higher.put([1, i1])
-    #
-    #     r1 = self.icn_layer._queue_to_lower.get(timeout=8)
-    #     self.assertEqual(r1, [3, i1])
-    #     r2 = self.icn_layer._queue_to_lower.get(timeout=8)
-    #     self.assertEqual(r2, [7, i1])
-    #     r1 = self.icn_layer._queue_to_lower.get(timeout=8)
-    #     self.assertEqual(r1, [3, i1])
-    #     r2 = self.icn_layer._queue_to_lower.get(timeout=8)
-    #     self.assertEqual(r2, [7, i1])
-    #     r1 = self.icn_layer._queue_to_lower.get(timeout=8)
-    #     self.assertEqual(r1, [3, i1])
-    #     r2 = self.icn_layer._queue_to_lower.get(timeout=8)
-    #     self.assertEqual(r2, [7, i1])
-    #     r1 = self.icn_layer._queue_to_lower.get(timeout=8)
-    #     self.assertEqual(r1, [3, i1])
-    #     r2 = self.icn_layer._queue_to_lower.get(timeout=8)
-    #     self.assertEqual(r2, [7, i1])
-    #
-    #     nack = self.icn_layer._queue_to_higher.get(timeout=8)
-    #     self.assertEqual(nack, [1, n1])
+        self.icn_layer.pit.remove_pit_entry(i4.name)
+        self.icn_layer.pit.remove_pit_entry(i1.name)
+
+        self.icn_layer.queue_from_lower.put([10, i5])
+        d1 = self.icn_layer.queue_to_lower.get(timeout=2.0)
+        pit_entry = self.icn_layer.pit.find_pit_entry(i5.name)
+        self.assertEqual([1], pit_entry.outgoing_faces)
