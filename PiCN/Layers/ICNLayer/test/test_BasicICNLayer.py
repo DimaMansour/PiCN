@@ -689,20 +689,28 @@ class test_BasicICNLayer(unittest.TestCase):
 
         self.icn_layer.start_process()
         self.icn_layer.fib.add_fib_entry(ab_name, [1, 2, 3])
-
+        # here the fib table has many entries which contains the prefix of ab_name
         self.icn_layer.fib.add_fib_entry(i6.name, [1, 4])
         self.icn_layer.fib.add_fib_entry(i7.name, [2, 3])
         self.icn_layer.fib.add_fib_entry(i8.name, [1, 5])
+        self.icn_layer.fib.add_fib_entry(i9.name, [5, 3])
 
+        #send the first interest ("/a/b/x") with no matching PIT entry. The outgoing face should be "1"
+        #as it is the first Interest and there is no pending Interests to affect the decision
         self.icn_layer.queue_from_lower.put([10, i1])
         d1 = self.icn_layer.queue_to_lower.get(timeout=2.0)
         pit_entry = self.icn_layer.pit.find_pit_entry(i1.name)
         self.assertEqual([1], pit_entry.outgoing_faces)
 
+        #send the second Interest ("/a/b/y") while the PIT entry of ("a/b/x") was not removed yet from the PIT
+        #The interest should be sent to face "2" as the occupancy of face "1" is higher than the occupancy of "2" and "3"
         self.icn_layer.queue_from_lower.put([10, i2])
         d1 = self.icn_layer.queue_to_lower.get(timeout=2.0)
         pit_entry = self.icn_layer.pit.find_pit_entry(i2.name)
         self.assertEqual([2], pit_entry.outgoing_faces)
+
+        #send bunch of Interests which are ("/x/y"), ("/x"), ("/m/n"),("/o/p"). In this case and because there is no matching entry in PIT for any of them.
+        # each one will be sent to the first avaialble face in FIB. So i6 will be sent to 1. i7 will be sent to 2...
 
         self.icn_layer.queue_from_lower.put([10, i6])
         d1 = self.icn_layer.queue_to_lower.get(timeout=2.0)
@@ -713,22 +721,25 @@ class test_BasicICNLayer(unittest.TestCase):
         self.icn_layer.queue_from_lower.put([10, i9])
         d1 = self.icn_layer.queue_to_lower.get(timeout=2.0)
 
-
+        # send the second Interest i3 ("/a/b/z") while the PIT entry of ("a/b/x") and ("a/b/y") was not removed yet from the PIT
+        # The interest should be sent to face "3" as the occupancy of face "1" and face "2" is higher than the occupancy of "3"
         self.icn_layer.queue_from_lower.put([10, i3])
         d1 = self.icn_layer.queue_to_lower.get(timeout=2.0)
         pit_entry = self.icn_layer.pit.find_pit_entry(i3.name)
         self.assertEqual([3], pit_entry.outgoing_faces)
 
 
-
+        # now send an interest i4 (("/a/b/w") while the previous three matching interests still exist in PIT. All faces have equal capacity so it will be sent to the first one.
         self.icn_layer.queue_from_lower.put([10, i4])
         d1 = self.icn_layer.queue_to_lower.get(timeout=2.0)
         pit_entry = self.icn_layer.pit.find_pit_entry(i4.name)
         self.assertEqual([1], pit_entry.outgoing_faces)
 
+        # we are removing i4 and i1 from the PIT table
         self.icn_layer.pit.remove_pit_entry(i4.name)
         self.icn_layer.pit.remove_pit_entry(i1.name)
 
+        # senf=d i5 while i2 and i3 still exist in PIT and they match i5. So the interest will be sent to face 1 because i2 is sent to 2 and i3 is sent to 3 so 2,3 have higher occupancy than 1
         self.icn_layer.queue_from_lower.put([10, i5])
         d1 = self.icn_layer.queue_to_lower.get(timeout=2.0)
         pit_entry = self.icn_layer.pit.find_pit_entry(i5.name)
