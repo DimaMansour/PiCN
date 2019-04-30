@@ -134,7 +134,7 @@ class BalancedForwardingStrategySimulation(unittest.TestCase):
     #     except:
     #         pass
 
-    def test_simple_map_reduce(self):
+    def test_simple_FS(self):
         """Simple map reduce test with input data as string parameter"""
         self.setup_faces_and_connections()
 
