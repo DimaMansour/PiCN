@@ -14,8 +14,9 @@ import abc
 import queue
 import unittest
 import os
-import schedule
+import threading
 import time
+import sched
 
 from PiCN.Layers.LinkLayer.Interfaces import SimulationBus
 from PiCN.Layers.LinkLayer.Interfaces import AddressInfo
@@ -30,6 +31,7 @@ from PiCN.Mgmt import MgmtClient
 
 class BalancedForwardingStrategySimulation(unittest.TestCase):
     """Test the forwarding strategy"""
+    scheduler = sched.scheduler(time.time, time.sleep)
 
     @abc.abstractmethod
     def get_encoder(self) -> BasicEncoder:
@@ -55,11 +57,15 @@ class BalancedForwardingStrategySimulation(unittest.TestCase):
                                  ageing_interval=1)
 
         c1 = Content(Name("/x/y"), "x..y")
+
         self.nfn1.mgmt.cs.add_content_object(c1)
-        c2 = Content(Name("/a/b"), "a..b")
-        self.nfn2.mgmt.cs.add_content_object(c2)
+        c2 = Content(Name("/a"), "a..")
         c3 = Content(Name("/a/b"), "a..b")
+        self.nfn2.mgmt.cs.add_content_object(c2)
+        self.nfn2.mgmt.cs.add_content_object(c3)
         self.nfn3.mgmt.cs.add_content_object(c3)
+        self.nfn3.mgmt.cs.add_content_object(c2)
+
 
 
         self.nfn1.icnlayer.pit.set_pit_timeout(0)
@@ -133,21 +139,44 @@ class BalancedForwardingStrategySimulation(unittest.TestCase):
     #         os.remove("/tmp/repo")
     #     except:
     #         pass
-
     def test_simple_FS(self):
         """Simple map reduce test with input data as string parameter"""
         self.setup_faces_and_connections()
-
         name1 = Name("/x/y")
-        name2 = Name("/a/b")
+        name2 = Name("/a")
         res1 = self.fetch_tool1.fetch_data(name1, timeout=0)
         res2 = self.fetch_tool1.fetch_data(name2, timeout=0)
-        time.sleep(3)
         print(res1)
         print(res2)
         self.assertEqual("x..y", res1)
-        self.assertEqual("a..b", res2)
+        self.assertEqual("a..", res2)
+        # name1 = Name("/a/b")
+        # name2 = Name("/a")
+        # t = threading.Thread(target=self.scheduler.run)
+        # t.start()
+        # self.scheduler.enter(2, 1, self.fetch_tool1.fetch_data(name1, timeout=0))
+        # thread = threading.Thread(target=t)
+        # thread.start()
+        # self.scheduler.enter(2, 1, self.fetch_tool1.fetch_data(name2, timeout=0))
+        # thread.join()
 
+
+        # print(res1)
+        # print(res2)
+        # self.assertEqual("a..b", res1)
+        # self.assertEqual("a..b", res2)
+
+    def test_FS(self):
+        """Simple map reduce test with input data as string parameter"""
+        self.setup_faces_and_connections()
+        name1 = Name("/x/y")
+        name2 = Name("/a")
+        res1 = self.fetch_tool1.fetch_data(name1, timeout=0)
+        res2 = self.fetch_tool1.fetch_data(name2, timeout=0)
+        print(res1)
+        print(res2)
+        self.assertEqual("x..y", res1)
+        self.assertEqual("a..", res2)
     #
     # def test_simple_map_reduce_data_from_repo(self):
     #     """Simple map reduce test with input data from repo"""
