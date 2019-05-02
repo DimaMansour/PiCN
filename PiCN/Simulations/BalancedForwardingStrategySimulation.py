@@ -142,11 +142,14 @@ class MapReduceSimulation(unittest.TestCase):
         self.mgmt_client4.add_forwarding_rule(Name("/lib"), [1])
 
         #setup function code
-        self.mgmt_client1.add_new_content(Name("/lib/func1"),"func1")
+        #self.mgmt_client1.add_new_content(Name("/lib/func1"),"PYTHON\nf\ndef f(n):\n return n")
+        self.mgmt_client1.add_new_content(Name("/lib/func1"), "PYTHON\nf\ndef f(n):\n  result =[]\n  x,y =0,1\n  while x<n:\n    result.append(x)\n    x,y = y, y+x\n  return result")
+        self.mgmt_client2.add_new_content(Name("/lib/func1"), "PYTHON\nf\ndef f(n):\n  result =[]\n  x,y =0,1\n  while x<n:\n    result.append(x)\n    x,y = y, y+x\n  return result")
         self.mgmt_client2.add_new_content(Name("/lib/func2"),"func2")
-        self.mgmt_client3.add_new_content(Name("/lib/func3"),"func3")
+        self.mgmt_client3.add_new_content(Name("/lib/func1"), "PYTHON\nf\ndef f(n):\n  result =[]\n  x,y =0,1\n  while x<n:\n    result.append(x)\n    x,y = y, y+x\n  return result")
         self.mgmt_client4.add_new_content(Name("/lib/func4"),"func4")
 
+#"PYTHON\nf\ndef f():\n result=[]\n x,y=0,1\n while x<n:\n result.append(x)\n x,y = y,y+x\n reurn result "
         # self.mgmt_client1.add_new_content(Name("/lib/func1"),
         #                                   "PYTHON\nf\ndef f():\n    for i in range(0,100000000):\n        a.upper()\n    return a.upper()")
         # self.mgmt_client2.add_new_content(Name("/lib/func2"),
@@ -179,17 +182,22 @@ class MapReduceSimulation(unittest.TestCase):
         self.setup_faces_and_connections()
 
         name1 = Name("/lib/func1")
-        name2= Name("/lib/func2")
+        name1 += '_(1000)'
+        name1 += "NFN"
+        name2= Name("/lib/func1")
+        name2 += '_(5)'
+        name2 += "NFN"
 
         res1 = self.fetch_tool1.fetch_data(name1, timeout=0)
-        time.sleep(3)
-        print(res1)
-        self.assertEqual("func1", res1)
-
         res2 = self.fetch_tool1.fetch_data(name2, timeout=0)
-        time.sleep(3)
+        print(res1)
         print(res2)
-        self.assertEqual("func2", res2)
+       # self.assertEqual("func1", res1)
+
+        # res2 = self.fetch_tool1.fetch_data(name2, timeout=0)
+        # time.sleep(3)
+        # print(res2)
+        # self.assertEqual("func2", res2)
 
     # def test_simple_map_reduce_data_from_repo(self):
     #     """Simple map reduce test with input data from repo"""
