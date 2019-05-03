@@ -16,19 +16,34 @@ import unittest
 import os
 import shutil
 import time
+import _thread
+import threading
 
 from PiCN.Layers.LinkLayer.Interfaces import SimulationBus
 from PiCN.Layers.LinkLayer.Interfaces import AddressInfo
 from PiCN.Layers.NFNLayer.NFNOptimizer import MapReduceOptimizer
 from PiCN.ProgramLibs.Fetch import Fetch
 from PiCN.ProgramLibs.NFNForwarder import NFNForwarder
+from PiCN.ProgramLibs.ICNForwarder import ICNForwarder
+
 from PiCN.ProgramLibs.ICNDataRepository import ICNDataRepository
 from PiCN.Layers.PacketEncodingLayer.Encoder import BasicEncoder, SimpleStringEncoder, NdnTlvEncoder
 from PiCN.Packets import Content, Interest, Name
 from PiCN.Mgmt import MgmtClient
 
+class Fs_thread(threading.Thread):
+    def __init__(self, name: Name, fetch_tool):
+        threading.Thread.__init__(self)
+        self.name = name
+        self.fetch_tool = fetch_tool
+    def run(self):
+        self.request_function()
 
-class MapReduceSimulation(unittest.TestCase):
+    def request_function(self):
+        self.fetch_tool.fetch_data(self.name)
+
+
+class Initiation(unittest.TestCase):
     """Simulate a Map Reduce Scenario where timeout prevention is required."""
 
     @abc.abstractmethod
@@ -43,19 +58,19 @@ class MapReduceSimulation(unittest.TestCase):
 
         self.nfn0 = NFNForwarder(port=0, encoder=self.encoder_type(),
                                  interfaces=[self.simulation_bus.add_interface("nfn0")], log_level=255,
-                                 ageing_interval=1)
+                                 ageing_interval=3)
         self.nfn1 = NFNForwarder(port=0, encoder=self.encoder_type(),
                                  interfaces=[self.simulation_bus.add_interface("nfn1")], log_level=255,
-                                 ageing_interval=1)
+                                 ageing_interval=3)
         self.nfn2 = NFNForwarder(port=0, encoder=self.encoder_type(),
                                  interfaces=[self.simulation_bus.add_interface("nfn2")], log_level=255,
-                                 ageing_interval=1)
+                                 ageing_interval=3)
         self.nfn3 = NFNForwarder(port=0, encoder=self.encoder_type(),
                                  interfaces=[self.simulation_bus.add_interface("nfn3")], log_level=255,
-                                 ageing_interval=1)
+                                 ageing_interval=3)
         self.nfn4 = NFNForwarder(port=0, encoder=self.encoder_type(),
                                  interfaces=[self.simulation_bus.add_interface("nfn4")], log_level=255,
-                                 ageing_interval=1)
+                                 ageing_interval=3)
 
         self.repo1 = ICNDataRepository("/tmp/repo1", Name("/repo/r1"), 0, 255, self.encoder_type(), False, False,
                                        [self.simulation_bus.add_interface("repo1")])
@@ -117,8 +132,12 @@ class MapReduceSimulation(unittest.TestCase):
         self.mgmt_client0.add_forwarding_rule(Name("/lib/func1"), [0])
         self.mgmt_client0.add_face("nfn2", None, 0)
         self.mgmt_client0.add_forwarding_rule(Name("/lib/func2"), [1])
+        self.mgmt_client0.add_face("nfn2", None, 0)
+        self.mgmt_client0.add_forwarding_rule(Name("/lib/func1"), [1])
         self.mgmt_client0.add_face("nfn3", None, 0)
         self.mgmt_client0.add_forwarding_rule(Name("/lib/func3"), [2])
+        self.mgmt_client0.add_face("nfn3", None, 0)
+        self.mgmt_client0.add_forwarding_rule(Name("/lib/func1"), [2])
         self.mgmt_client0.add_face("nfn4", None, 0)
         self.mgmt_client0.add_forwarding_rule(Name("/lib/func4"), [3])
 
@@ -149,7 +168,6 @@ class MapReduceSimulation(unittest.TestCase):
         self.mgmt_client3.add_new_content(Name("/lib/func1"), "PYTHON\nf\ndef f(n):\n  result =[]\n  x,y =0,1\n  while x<n:\n    result.append(x)\n    x,y = y, y+x\n  return result")
         self.mgmt_client4.add_new_content(Name("/lib/func4"),"func4")
 
-#"PYTHON\nf\ndef f():\n result=[]\n x,y=0,1\n while x<n:\n result.append(x)\n x,y = y,y+x\n reurn result "
         # self.mgmt_client1.add_new_content(Name("/lib/func1"),
         #                                   "PYTHON\nf\ndef f():\n    for i in range(0,100000000):\n        a.upper()\n    return a.upper()")
         # self.mgmt_client2.add_new_content(Name("/lib/func2"),
@@ -177,21 +195,77 @@ class MapReduceSimulation(unittest.TestCase):
         except:
             pass
 
-    def test_simple_map_reduce(self):
-        """Simple map reduce test with input data as string parameter"""
+    def test_simple_Fs(self):
+        self.setup_repo()
         self.setup_faces_and_connections()
-
         name1 = Name("/lib/func1")
-        name1 += '_(1000)'
+        name1 += '_(100000000000000000000000000)'
         name1 += "NFN"
-        name2= Name("/lib/func1")
-        name2 += '_(5)'
+
+        name2 = Name("/lib/func1")
+        name2 += '_(20000000000000000000000)'
         name2 += "NFN"
 
-        res1 = self.fetch_tool1.fetch_data(name1, timeout=0)
-        res2 = self.fetch_tool1.fetch_data(name2, timeout=0)
-        print(res1)
-        print(res2)
+        name3 = Name("/lib/func1")
+        name3 += '_(30000000)'
+        name3 += "NFN"
+        t1= Fs_thread(name1, fetch_tool= self.fetch_tool1)
+        t2= Fs_thread(name2, fetch_tool= self.fetch_tool1)
+        t3= Fs_thread(name3, fetch_tool= self.fetch_tool1)
+
+        t1.start()
+        t2.start()
+        t3.start()
+        t1.join()
+        t2.join()
+        t3.join()
+
+    # def first_request(self):
+    #         name1 = Name("/lib/func1")
+    #         name1 += '_(100000000000000000000000000)'
+    #         name1 += "NFN"
+    #         self.fetch_tool1.fetch_data(name1, timeout=10)
+    #
+    # def second_request(self):
+    #         name1 = Name("/lib/func1")
+    #         name1 += '_(5)'
+    #         name1 += "NFN"
+    #         self.fetch_tool1.fetch_data(name1, timeout=10)
+    #
+    # def third_request(self):
+    #         name1 = Name("/lib/func1")
+    #         name1 += '_(1000000)'
+    #         name1 += "NFN"
+    #         self.fetch_tool1.fetch_data(name1, timeout=10)
+    #
+    # def test_simple_Fs(self):
+    #     """Simple FS test"""
+    #     self.setup_repo()
+    #     self.setup_faces_and_connections()
+    #     t1= threading.Thread(self.first_request())
+    #     t2= threading.Thread(self.second_request())
+    #     t3= threading.Thread(self.third_request())
+    #     t1.start()
+    #     t2.start()
+    #     t3.start()
+
+
+        # t1 = threading.Thread(self.first_request())
+        # t2 = threading.Thread(self.second_request())
+        # t3 = threading.Thread(self.third_request())
+        # t1.start()
+        # t2.start()
+        # t3.start()
+
+        #
+        # name2= Name("/lib/func1")
+        # name2 += '_(5)'
+        # name2 += "NFN"
+        #
+        # res1 = self.
+        # res2 = self.fetch_tool1.fetch_data(name2, timeout=0)
+        # print(res1)
+        # print(res2)
        # self.assertEqual("func1", res1)
 
         # res2 = self.fetch_tool1.fetch_data(name2, timeout=0)
