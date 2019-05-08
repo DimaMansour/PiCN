@@ -40,7 +40,7 @@ class Fs_thread(threading.Thread):
         self.request_function()
 
     def request_function(self):
-        self.fetch_tool.fetch_data(self.name)
+        self.fetch_tool.fetch_data(self.name,timeout= 10)
 
 
 class Initiation(unittest.TestCase):
@@ -54,10 +54,10 @@ class Initiation(unittest.TestCase):
         self.encoder_type = self.get_encoder()
         self.simulation_bus = SimulationBus(packetencoder=self.encoder_type())
 
-        self.fetch_tool1 = Fetch("nfn0", None, 255, self.encoder_type(), interfaces=[self.simulation_bus.add_interface("fetchtool1")])
+        self.fetch_tool1 = Fetch("distributor", None, 255, self.encoder_type(), interfaces=[self.simulation_bus.add_interface("fetchtool1")])
 
-        self.nfn0 = NFNForwarder(port=0, encoder=self.encoder_type(),
-                                 interfaces=[self.simulation_bus.add_interface("nfn0")], log_level=255,
+        self.distributor = NFNForwarder(port=0, encoder=self.encoder_type(),
+                                 interfaces=[self.simulation_bus.add_interface("distributor")], log_level=255,
                                  ageing_interval=3)
         self.nfn1 = NFNForwarder(port=0, encoder=self.encoder_type(),
                                  interfaces=[self.simulation_bus.add_interface("nfn1")], log_level=255,
@@ -81,24 +81,24 @@ class Initiation(unittest.TestCase):
         self.repo4 = ICNDataRepository("/tmp/repo4", Name("/repo/r4"), 0, 255, self.encoder_type(), False, False,
                                        [self.simulation_bus.add_interface("repo4")])
 
-        self.nfn1.icnlayer.pit.set_pit_timeout(0)
-        self.nfn1.icnlayer.cs.set_cs_timeout(30)
-        self.nfn2.icnlayer.pit.set_pit_timeout(0)
-        self.nfn2.icnlayer.cs.set_cs_timeout(30)
-        self.nfn3.icnlayer.pit.set_pit_timeout(0)
-        self.nfn3.icnlayer.cs.set_cs_timeout(30)
-        self.nfn4.icnlayer.pit.set_pit_timeout(0)
-        self.nfn4.icnlayer.cs.set_cs_timeout(30)
+        self.nfn1.icnlayer.pit.set_pit_timeout(50)
+        self.nfn1.icnlayer.cs.set_cs_timeout(0)
+        self.nfn2.icnlayer.pit.set_pit_timeout(50)
+        self.nfn2.icnlayer.cs.set_cs_timeout(0)
+        self.nfn3.icnlayer.pit.set_pit_timeout(50)
+        self.nfn3.icnlayer.cs.set_cs_timeout(0)
+        self.nfn4.icnlayer.pit.set_pit_timeout(50)
+        self.nfn4.icnlayer.cs.set_cs_timeout(0)
 
 
-        self.mgmt_client0 = MgmtClient(self.nfn0.mgmt.mgmt_sock.getsockname()[1])
+        self.mgmt_client0 = MgmtClient(self.distributor.mgmt.mgmt_sock.getsockname()[1])
         self.mgmt_client1 = MgmtClient(self.nfn1.mgmt.mgmt_sock.getsockname()[1])
         self.mgmt_client2 = MgmtClient(self.nfn2.mgmt.mgmt_sock.getsockname()[1])
         self.mgmt_client3 = MgmtClient(self.nfn3.mgmt.mgmt_sock.getsockname()[1])
         self.mgmt_client4 = MgmtClient(self.nfn4.mgmt.mgmt_sock.getsockname()[1])
 
     def tearDown(self):
-        self.nfn0.stop_forwarder()
+        self.distributor.stop_forwarder()
         self.nfn1.stop_forwarder()
         self.nfn2.stop_forwarder()
         self.nfn3.stop_forwarder()
@@ -112,7 +112,7 @@ class Initiation(unittest.TestCase):
         self.tearDown_repo()
 
     def setup_faces_and_connections(self):
-        self.nfn0.start_forwarder()
+        self.distributor.start_forwarder()
         self.nfn1.start_forwarder()
         self.nfn2.start_forwarder()
         self.nfn3.start_forwarder()
@@ -129,17 +129,13 @@ class Initiation(unittest.TestCase):
 
         # setup forwarding rules
         self.mgmt_client0.add_face("nfn1", None, 0)
-        self.mgmt_client0.add_forwarding_rule(Name("/lib/func1"), [0])
+        self.mgmt_client0.add_forwarding_rule(Name("/lib"), [0])
         self.mgmt_client0.add_face("nfn2", None, 0)
-        self.mgmt_client0.add_forwarding_rule(Name("/lib/func2"), [1])
-        self.mgmt_client0.add_face("nfn2", None, 0)
-        self.mgmt_client0.add_forwarding_rule(Name("/lib/func1"), [1])
+        self.mgmt_client0.add_forwarding_rule(Name("/lib"), [1])
         self.mgmt_client0.add_face("nfn3", None, 0)
-        self.mgmt_client0.add_forwarding_rule(Name("/lib/func3"), [2])
-        self.mgmt_client0.add_face("nfn3", None, 0)
-        self.mgmt_client0.add_forwarding_rule(Name("/lib/func1"), [2])
+        self.mgmt_client0.add_forwarding_rule(Name("/lib"), [2])
         self.mgmt_client0.add_face("nfn4", None, 0)
-        self.mgmt_client0.add_forwarding_rule(Name("/lib/func4"), [3])
+        self.mgmt_client0.add_forwarding_rule(Name("/lib4/func4"), [3])
 
         self.mgmt_client1.add_face("repo1", None, 0)
         self.mgmt_client1.add_forwarding_rule(Name("/repo/r1"), [0])
@@ -158,15 +154,15 @@ class Initiation(unittest.TestCase):
         self.mgmt_client3.add_face("nfn0", None, 0)
         self.mgmt_client3.add_forwarding_rule(Name("/lib"), [1])
         self.mgmt_client4.add_face("nfn0", None, 0)
-        self.mgmt_client4.add_forwarding_rule(Name("/lib"), [1])
+        self.mgmt_client4.add_forwarding_rule(Name("/lib4/func4"), [1])
 
         #setup function code
         #self.mgmt_client1.add_new_content(Name("/lib/func1"),"PYTHON\nf\ndef f(n):\n return n")
         self.mgmt_client1.add_new_content(Name("/lib/func1"), "PYTHON\nf\ndef f(n):\n  result =[]\n  x,y =0,1\n  while x<n:\n    result.append(x)\n    x,y = y, y+x\n  return result")
         self.mgmt_client2.add_new_content(Name("/lib/func1"), "PYTHON\nf\ndef f(n):\n  result =[]\n  x,y =0,1\n  while x<n:\n    result.append(x)\n    x,y = y, y+x\n  return result")
-        self.mgmt_client2.add_new_content(Name("/lib/func2"),"func2")
+       # self.mgmt_client2.add_new_content(Name("/lib/func2"),"func2")
         self.mgmt_client3.add_new_content(Name("/lib/func1"), "PYTHON\nf\ndef f(n):\n  result =[]\n  x,y =0,1\n  while x<n:\n    result.append(x)\n    x,y = y, y+x\n  return result")
-        self.mgmt_client4.add_new_content(Name("/lib/func4"),"func4")
+        self.mgmt_client4.add_new_content(Name("/lib4/func4"),"func4")
 
         # self.mgmt_client1.add_new_content(Name("/lib/func1"),
         #                                   "PYTHON\nf\ndef f():\n    for i in range(0,100000000):\n        a.upper()\n    return a.upper()")
@@ -199,15 +195,15 @@ class Initiation(unittest.TestCase):
         self.setup_repo()
         self.setup_faces_and_connections()
         name1 = Name("/lib/func1")
-        name1 += '_(100000000000000000000000000)'
+        name1 += '_(1000000000)'
         name1 += "NFN"
 
         name2 = Name("/lib/func1")
-        name2 += '_(20000000000000000000000)'
+        name2 += '_(500000)'
         name2 += "NFN"
 
         name3 = Name("/lib/func1")
-        name3 += '_(30000000)'
+        name3 += '_(5000)'
         name3 += "NFN"
         t1= Fs_thread(name1, fetch_tool= self.fetch_tool1)
         t2= Fs_thread(name2, fetch_tool= self.fetch_tool1)
