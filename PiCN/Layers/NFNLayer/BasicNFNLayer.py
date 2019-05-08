@@ -1,7 +1,7 @@
 """Basic NFN Layer Implementation"""
 import multiprocessing
 import random
-
+import time
 from typing import Dict, List
 
 from PiCN.Packets import Interest, Content, Nack, NackReason, Name
@@ -36,6 +36,9 @@ class BasicNFNLayer(LayerProcess):
         self.parser: DefaultNFNParser = parser
         self.optimizer: BaseNFNOptimizer = ToDataFirstOptimizer(self.cs, self.fib, self.pit, self.faceidtable)
 
+    def return_nack(self, packet_id, interest: Interest):
+        self.queue_to_lower.put([packet_id, Nack(interest.name, reason=NackReason.NOT_SET,
+                                                 interest=interest)])
     def data_from_lower(self, to_lower: multiprocessing.Queue, to_higher: multiprocessing.Queue, data):
         """handle incomming data from the lower layer """
         packet_id = data[0]
@@ -73,6 +76,22 @@ class BasicNFNLayer(LayerProcess):
         if interest.name.components[-1] != b"NFN": #send non NFN interests back
             self.queue_to_lower.put([packet_id, interest])
             return
+
+
+        if interest.name.components[-1] == b"pNFN":
+            try:
+                num_params = int(interest.name.components[-2])
+                self.params = interest.name.components[-num_params - 2:-2]
+                self.params = list(map(lambda x: x.decode('utf-8'), self.params))
+                assert (num_params < len(interest.name.components) - 2)
+                self.function_name = interest.name.components[:-num_params - 2]
+                self.function_name = "/" + "/".join(list(map(lambda x: x.decode('utf-8'), self.function_name)))
+            except:
+                self.return_nack(packet_id, interest)
+                self.logger.info("Invalid computation expression. Return NACK.")
+                return
+
+
         #parse interest and create computation
         nfn_str, prepended_name = self.parser.network_name_to_nfn_str(interest.name)
         ast = self.parser.parse(nfn_str)
@@ -272,6 +291,19 @@ class BasicNFNLayer(LayerProcess):
         #self.computation_table.push_data(content_res)
         #self.queue_to_lower.put([entry.id, content_res])
         self.handleContent(entry.id, content_res)
+
+    def executePinnedFunction(self, function, params, interest_name: Name):
+            result = function(params)
+            new_components = interest_name.to_string().split("/")[1:-1]
+            new_components.append("resultpNFN")
+            new_name = "/" + '/'.join(new_components)
+            content_object = Content(new_name, str(result))
+            self.queue_to_lower.put([-1, content_object])
+
+    def pinned_function_square(self, params):
+            # TODO -- check if params contains valid parameters
+            time.sleep(5)
+            return int(pow(int(params[0]), 2))
 
     def ageing(self):
         """Ageging of the computation queue etc"""
