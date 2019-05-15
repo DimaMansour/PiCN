@@ -58,7 +58,12 @@ class NFNComputationLayer(LayerProcess):
                 t.setDaemon(True)
                 t.start()
                 return
-
+            if function_name == "/the/prefix/square2":
+                arguments = [self.pinned_function_square2, params, interest.name, packet_id]
+                t = threading.Thread(target=self.executePinnedFunction, args=arguments)
+                t.setDaemon(True)
+                t.start()
+                return
             # if function_name == "/the/prefix/square1":
             #     result = self.pinned_function_square1(params)
             #     self.return_result(packet_id, Content(interest.name, str(result)))  # QUESTION -- return as string?
@@ -83,12 +88,12 @@ class NFNComputationLayer(LayerProcess):
 
     def pinned_function_square1(self, params):
         # TODO -- check if params contains valid parameters
-        time.sleep(5)
+        time.sleep(2)
         return int(pow(int(params[0]), 2))
 
     def pinned_function_square2(self, params):
         # TODO -- check if params contains valid parameters
-        time.sleep(3)
+        time.sleep(10)
         return int(pow(int(params[0]), 2))
 
     def ageing(self):

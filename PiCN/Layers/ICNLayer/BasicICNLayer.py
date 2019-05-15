@@ -139,7 +139,7 @@ class BasicICNLayer(LayerProcess):
                     self.pit.add_used_fib_face(interest.name, [fid])
                     self.pit.increase_number_of_forwards(interest.name)
                     to_lower.put([fid, interest])
-                    self.logger.info("the interest is sent to : " + str(fid) )
+                    self.logger.info("the interest :"+ str(interest.name) + "is sent to : " + str(fid) )
                     break
             return
         self.logger.info("No FIB entry, sending Nack")
