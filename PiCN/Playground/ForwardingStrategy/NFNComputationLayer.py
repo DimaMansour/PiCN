@@ -83,7 +83,7 @@ class NFNComputationLayer(LayerProcess):
 
     def pinned_function_square1(self, params):
         # TODO -- check if params contains valid parameters
-        time.sleep(2)
+        time.sleep(5)
         return int(pow(int(params[0]), 2))
 
     def pinned_function_square2(self, params):

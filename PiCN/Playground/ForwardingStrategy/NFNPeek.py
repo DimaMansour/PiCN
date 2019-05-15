@@ -23,9 +23,11 @@ def main(args):
     # Send interest packet
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.bind(("0.0.0.0", 0))
-
-    resolved_hostname = socket.gethostbyname(args.ip)
-
+    try:
+        resolved_hostname = socket.gethostbyname(args.ip)
+    except:
+        print("Resolution of hostname failed.")
+        sys.exit(-2)
     sock.sendto(encoded_interest, (resolved_hostname, args.port))
 
     # Receive content object

@@ -4,6 +4,7 @@ import multiprocessing
 import threading
 import time
 from typing import List
+from PiCN.Layers.LinkLayer import BasicLinkLayer
 from PiCN.Layers.ICNLayer.ContentStore import BaseContentStore, ContentStoreEntry
 from PiCN.Layers.ICNLayer.ForwardingInformationBase import BaseForwardingInformationBase, ForwardingInformationBaseEntry
 from PiCN.Layers.RoutingLayer.RoutingInformationBase import BaseRoutingInformationBase
@@ -24,7 +25,7 @@ class BasicICNLayer(LayerProcess):
         self.pit = pit
         self.fib = fib
         self.rib = rib
-        self._ageing_interval: int = ageing_interval
+        self._ageing_interval: int = 50
         self._interest_to_app: bool = False
 
     def data_from_higher(self, to_lower: multiprocessing.Queue, to_higher: multiprocessing.Queue, data):

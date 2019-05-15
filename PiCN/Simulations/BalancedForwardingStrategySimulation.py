@@ -160,7 +160,7 @@ class Initiation(unittest.TestCase):
         #self.mgmt_client1.add_new_content(Name("/lib/func1"),"PYTHON\nf\ndef f(n):\n return n")
         self.mgmt_client1.add_new_content(Name("/lib/func1"), "PYTHON\nf\ndef f(n):\n  result =[]\n  x,y =0,1\n  while x<n:\n    result.append(x)\n    x,y = y, y+x\n  return result")
         self.mgmt_client2.add_new_content(Name("/lib/func1"), "PYTHON\nf\ndef f(n):\n  result =[]\n  x,y =0,1\n  while x<n:\n    result.append(x)\n    x,y = y, y+x\n  return result")
-       # self.mgmt_client2.add_new_content(Name("/lib/func2"),"func2")
+        self.mgmt_client2.add_new_content(Name("/lib/func2"),"PYTHON\nf\ndef f(n):\n  result =[]\n  x,y =0,1\n  while x<n:\n    result.append(x)\n    x,y = y, y+x\n  return result")
         self.mgmt_client3.add_new_content(Name("/lib/func1"), "PYTHON\nf\ndef f(n):\n  result =[]\n  x,y =0,1\n  while x<n:\n    result.append(x)\n    x,y = y, y+x\n  return result")
         self.mgmt_client4.add_new_content(Name("/lib4/func4"),"func4")
 
@@ -198,7 +198,7 @@ class Initiation(unittest.TestCase):
         name1 += '_(10000000000000000000000000)'
         name1 += "NFN"
 
-        name2 = Name("/lib/func1")
+        name2 = Name("/lib/func2")
         name2 += '_(500000)'
         name2 += "NFN"
 
