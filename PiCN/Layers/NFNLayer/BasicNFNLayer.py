@@ -2,6 +2,7 @@
 import multiprocessing
 import random
 import time
+import threading
 from typing import Dict, List
 
 from PiCN.Packets import Interest, Content, Nack, NackReason, Name
@@ -91,8 +92,7 @@ class BasicNFNLayer(LayerProcess):
                 self.logger.info("Invalid computation expression. Return NACK.")
                 return
 
-
-        #parse interest and create computation
+        #parse interest and create computationf
         nfn_str, prepended_name = self.parser.network_name_to_nfn_str(interest.name)
         ast = self.parser.parse(nfn_str)
 
@@ -291,19 +291,6 @@ class BasicNFNLayer(LayerProcess):
         #self.computation_table.push_data(content_res)
         #self.queue_to_lower.put([entry.id, content_res])
         self.handleContent(entry.id, content_res)
-
-    def executePinnedFunction(self, function, params, interest_name: Name):
-            result = function(params)
-            new_components = interest_name.to_string().split("/")[1:-1]
-            new_components.append("resultpNFN")
-            new_name = "/" + '/'.join(new_components)
-            content_object = Content(new_name, str(result))
-            self.queue_to_lower.put([-1, content_object])
-
-    def pinned_function_square(self, params):
-            # TODO -- check if params contains valid parameters
-            time.sleep(5)
-            return int(pow(int(params[0]), 2))
 
     def ageing(self):
         """Ageging of the computation queue etc"""

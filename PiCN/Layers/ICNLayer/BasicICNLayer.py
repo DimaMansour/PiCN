@@ -4,7 +4,7 @@ import multiprocessing
 import threading
 import time
 from typing import List
-
+from PiCN.Layers.LinkLayer import BasicLinkLayer
 from PiCN.Layers.ICNLayer.ContentStore import BaseContentStore, ContentStoreEntry
 from PiCN.Layers.ICNLayer.ForwardingInformationBase import BaseForwardingInformationBase, ForwardingInformationBaseEntry
 from PiCN.Layers.RoutingLayer.RoutingInformationBase import BaseRoutingInformationBase
@@ -124,17 +124,22 @@ class BasicICNLayer(LayerProcess):
             return
         matching_fib_entry = self.fib.find_fib_entry(interest.name, None, [face_id])
         if matching_fib_entry is not None:
-            self.logger.info("Found in FIB, forwarding to Face: " +  str(matching_fib_entry.faceid))
+            self.logger.info("Found in FIB, the name is: " +  str(matching_fib_entry.name))
+            self.logger.info("Found in FIB, available faces: " +  str(matching_fib_entry.faceid))
             pit_occupancy = self.pit.occupancy_available_faces_per_name(matching_fib_entry)
+            self.logger.info("pit_occupancy: " + str(pit_occupancy))
             sorted_pit_occupancy = sorted(pit_occupancy.items(), key=lambda kv: kv[1])
             faces_sorted_by_occupancy = list(map(lambda kv: kv[0], sorted_pit_occupancy))
+            self.logger.info("faces_sorted_by_occupancy : " + str(faces_sorted_by_occupancy))
 
             for fid in faces_sorted_by_occupancy:
                 if not self.pit.test_faceid_was_nacked(interest.name, fid):
                     self.pit.add_pit_entry(interest.name, face_id, fid, interest, local_app=from_local)
+                    #TODO Check if the two following lines are right
                     self.pit.add_used_fib_face(interest.name, [fid])
                     self.pit.increase_number_of_forwards(interest.name)
                     to_lower.put([fid, interest])
+                    self.logger.info("the interest is sent to : " + str(fid) )
                     break
             return
         self.logger.info("No FIB entry, sending Nack")
@@ -151,6 +156,7 @@ class BasicICNLayer(LayerProcess):
         if pit_entry is None:
             self.logger.info("No PIT entry for content object available, dropping")
             #todo NACK??
+            #self.cs.add_content_object(content)
             return
         else:
             for i in range(0, len(pit_entry.faceids)):

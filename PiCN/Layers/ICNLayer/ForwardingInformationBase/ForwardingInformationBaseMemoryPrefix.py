@@ -29,6 +29,7 @@ class ForwardingInformationBaseMemoryPrefix(BaseForwardingInformationBase):
                         continue
                     if not incoming_faceids or face not in incoming_faceids:
                         forward_faceids.append(face)
+
                 # Here we have a list of face ids that
                 #   - match the name fully
                 #   - not already used
@@ -45,6 +46,8 @@ class ForwardingInformationBaseMemoryPrefix(BaseForwardingInformationBase):
         fib_entry = ForwardingInformationBaseEntry(name, faceid, static)
         if fib_entry not in self._container:
             self._container.insert(0, fib_entry)
+        # else:
+        #     self.add_faceid_to_entry(name, faceid)
 
     def remove_fib_entry(self, name: Name):
         for fib_entry in self._container:
@@ -57,8 +60,8 @@ class ForwardingInformationBaseMemoryPrefix(BaseForwardingInformationBase):
         if entry is None:
             return
         if fid not in entry.faceid:
-            entry.faceid.append(fid)
-        self._container.insert(0, entry)
+            entry.faceid.extend(fid)
+            self._container.insert(0, entry)
 
     def clear(self):
         for fib_entry in self._container:

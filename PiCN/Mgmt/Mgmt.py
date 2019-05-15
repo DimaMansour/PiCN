@@ -121,7 +121,13 @@ class Mgmt(PiCNProcess):
 
             prefix = prefix.replace("%2F", "/")
             name = Name(prefix)
-            self.fib.add_fib_entry(name, faceid, True)
+
+            if self.fib.find_fib_entry(name) is None:
+                self.fib.add_fib_entry(name, faceid, True)
+
+            else:
+                self.fib.add_faceid_to_entry(name, faceid)
+
             reply = "HTTP/1.1 200 OK \r\n Content-Type: text/html \r\n\r\n newforwardingrule OK:" + str(faceid_str) + "\r\n"
             replysock.send(reply.encode())
             self.logger.info("New Forwardingrule added " + prefix + "|" + str(faceid))
