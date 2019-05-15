@@ -22,13 +22,10 @@ def main(args):
 
     # Send interest packet
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.settimeout(6)
     sock.bind(("0.0.0.0", 0))
-    try:
-        resolved_hostname = socket.gethostbyname(args.ip)
-    except:
-        print("Resolution of hostname failed.")
-        sys.exit(-2)
+
+    resolved_hostname = socket.gethostbyname(args.ip)
+
     sock.sendto(encoded_interest, (resolved_hostname, args.port))
 
     # Receive content object
@@ -51,7 +48,7 @@ def main(args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Pinned NFN Peek Tool')
+    parser = argparse.ArgumentParser(description='NFN Peek Tool')
     parser.add_argument('-i', '--ip', type=str, default='127.0.0.1',
                         help="IP address or hostname of forwarder (default: 127.0.0.1)")
     parser.add_argument('-p', '--port', type=int, default=9000, help="UDP port (default: 9000)")

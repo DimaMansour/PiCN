@@ -4,7 +4,6 @@ import multiprocessing
 import threading
 import time
 from typing import List
-from PiCN.Layers.LinkLayer import BasicLinkLayer
 from PiCN.Layers.ICNLayer.ContentStore import BaseContentStore, ContentStoreEntry
 from PiCN.Layers.ICNLayer.ForwardingInformationBase import BaseForwardingInformationBase, ForwardingInformationBaseEntry
 from PiCN.Layers.RoutingLayer.RoutingInformationBase import BaseRoutingInformationBase

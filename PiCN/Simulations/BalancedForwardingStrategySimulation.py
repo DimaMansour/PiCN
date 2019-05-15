@@ -195,7 +195,7 @@ class Initiation(unittest.TestCase):
         self.setup_repo()
         self.setup_faces_and_connections()
         name1 = Name("/lib/func1")
-        name1 += '_(1000000000)'
+        name1 += '_(10000000000000000000000000)'
         name1 += "NFN"
 
         name2 = Name("/lib/func1")
@@ -205,16 +205,31 @@ class Initiation(unittest.TestCase):
         name3 = Name("/lib/func1")
         name3 += '_(5000)'
         name3 += "NFN"
+
+        name4 = Name("/lib/func1")
+        name4 += '_(900000000000000000)'
+        name4 += "NFN"
+
+        name5 = Name("/lib/func1")
+        name5 += '_(68899455874)'
+        name5 += "NFN"
+
         t1= Fs_thread(name1, fetch_tool= self.fetch_tool1)
         t2= Fs_thread(name2, fetch_tool= self.fetch_tool1)
         t3= Fs_thread(name3, fetch_tool= self.fetch_tool1)
+        t4= Fs_thread(name4, fetch_tool= self.fetch_tool1)
+        t5= Fs_thread(name5, fetch_tool= self.fetch_tool1)
 
         t1.start()
         t2.start()
         t3.start()
+        t4.start()
+        t5.start()
         t1.join()
         t2.join()
         t3.join()
+        t4.join()
+        t5.join()
 
     # def first_request(self):
     #         name1 = Name("/lib/func1")

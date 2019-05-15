@@ -1,3 +1,5 @@
+
+
 import multiprocessing
 import threading
 import time
@@ -5,7 +7,6 @@ from math import pow, gcd
 
 from PiCN.Processes import LayerProcess
 from PiCN.Packets import Name, Interest, Content, Nack, NackReason
-
 
 class NFNComputationLayer(LayerProcess):
     def __init__(self, replica_id, log_level=255):
@@ -82,7 +83,7 @@ class NFNComputationLayer(LayerProcess):
 
     def pinned_function_square1(self, params):
         # TODO -- check if params contains valid parameters
-        time.sleep(3)
+        time.sleep(2)
         return int(pow(int(params[0]), 2))
 
     def pinned_function_square2(self, params):

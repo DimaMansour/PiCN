@@ -24,7 +24,7 @@ def main(args):
     logger = Logger("Repo", log_level)
 
     # Info
-    logger.info("Starting a Two-Phase Computation Server...")
+    logger.info("Starting an NFN server...")
     logger.info("Replica ID:     " + str(args.id))
     logger.info("UDP Port:       " + str(args.port))
     logger.info("Log Level:      " + args.logging)
