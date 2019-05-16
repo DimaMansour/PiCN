@@ -10,7 +10,7 @@ from PiCN.Packets import Name, Interest, Content, Nack, NackReason
 
 class NFNComputationLayer(LayerProcess):
     def __init__(self, replica_id, log_level=255):
-        super().__init__(logger_name="pinnedNFNLayer (" + str(replica_id) + ")", log_level=log_level)
+        super().__init__(logger_name="NFNLayer (" + str(replica_id) + ")", log_level=log_level)
         self.storage = None
 
     def data_from_higher(self, to_lower: multiprocessing.Queue, to_higher: multiprocessing.Queue, data):

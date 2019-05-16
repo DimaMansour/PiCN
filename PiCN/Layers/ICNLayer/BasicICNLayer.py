@@ -25,7 +25,7 @@ class BasicICNLayer(LayerProcess):
         self.pit = pit
         self.fib = fib
         self.rib = rib
-        self._ageing_interval: int = 50
+        self._ageing_interval: int = 100
         self._interest_to_app: bool = False
 
     def data_from_higher(self, to_lower: multiprocessing.Queue, to_higher: multiprocessing.Queue, data):

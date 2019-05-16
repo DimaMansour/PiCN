@@ -41,7 +41,7 @@ def main(args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Two-Phase NFN Server')
+    parser = argparse.ArgumentParser(description='NFN Server')
     parser.add_argument('-i', '--id', type=int, help="ID of this replica", default=1)
     # parser.add_argument('-i', '--id', type=int, help="ID of this replica", required=True)
     parser.add_argument('-p', '--port', type=int, default=3000,

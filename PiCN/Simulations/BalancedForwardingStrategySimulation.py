@@ -158,10 +158,10 @@ class Initiation(unittest.TestCase):
 
         #setup function code
         #self.mgmt_client1.add_new_content(Name("/lib/func1"),"PYTHON\nf\ndef f(n):\n return n")
-        self.mgmt_client1.add_new_content(Name("/lib/func1"), "PYTHON\nf\ndef f(n):\n  result =[]\n  x,y =0,1\n  while x<n:\n    result.append(x)\n    x,y = y, y+x\n  return result")
-        self.mgmt_client2.add_new_content(Name("/lib/func2"), "PYTHON\nf\ndef f(n):\n  result =[]\n  x,y =0,1\n  while x<n:\n    result.append(x)\n    x,y = y, y+x\n  return result")
-        self.mgmt_client2.add_new_content(Name("/lib/func2"),"PYTHON\nf\ndef f(n):\n  result =[]\n  x,y =0,1\n  while x<n:\n    result.append(x)\n    x,y = y, y+x\n  return result")
-        self.mgmt_client3.add_new_content(Name("/lib/func3"), "PYTHON\nf\ndef f(n):\n  result =[]\n  x,y =0,1\n  while x<n:\n    result.append(x)\n    x,y = y, y+x\n  return result")
+        self.mgmt_client1.add_new_content(Name("/lib/func1"), "PYTHON\nf\ndef f():\n  result =[]\n  x,y =0,1\n  while x<n:\n    result.append(x)\n    x,y = y, y+x\n  return result")
+        self.mgmt_client2.add_new_content(Name("/lib/func1"), "PYTHON\nf\ndef f(n):\n  result =[]\n  x,y =0,1\n  while x<n:\n    result.append(x)\n    x,y = y, y+x\n  return result")
+       # self.mgmt_client2.add_new_content(Name("/lib/func2"),"func2")
+        self.mgmt_client3.add_new_content(Name("/lib/func1"), "PYTHON\nf\ndef f(n):\n  result =[]\n  x,y =0,1\n  while x<n:\n    result.append(x)\n    x,y = y, y+x\n  return result")
         self.mgmt_client4.add_new_content(Name("/lib4/func4"),"func4")
 
         # self.mgmt_client1.add_new_content(Name("/lib/func1"),
@@ -195,18 +195,18 @@ class Initiation(unittest.TestCase):
         self.setup_repo()
         self.setup_faces_and_connections()
         name1 = Name("/lib/func1")
-        name1 += '_(10000000000000000000000000)'
+        name1 += '_()'
         name1 += "NFN"
 
-        name2 = Name("/lib/func2")
+        name2 = Name("/lib/func1")
         name2 += '_(500000)'
         name2 += "NFN"
 
-        name3 = Name("/lib/func2")
+        name3 = Name("/lib/func1")
         name3 += '_(5000)'
         name3 += "NFN"
 
-        name4 = Name("/lib/func3")
+        name4 = Name("/lib/func1")
         name4 += '_(900000000000000000)'
         name4 += "NFN"
 
