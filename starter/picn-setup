@@ -305,6 +305,10 @@ function config_dima_heartbeat {
     tmux new-window -t $SESSION:3 -n 'Server0'
     tmux send-keys -t $SESSION:3 'picn-heartbeat-server -l ' $LOGLEVEL ' --port 3000' C-m
 
+    # Start server on port 3001
+    tmux new-window -t $SESSION:4 -n 'Server1'
+    tmux send-keys -t $SESSION:4 'picn-heartbeat-server -l ' $LOGLEVEL ' --port 3001' C-m
+
     sleep .5
 
     # Face and fwd rule from 4001 to 4000
@@ -318,6 +322,13 @@ function config_dima_heartbeat {
     sleep .2
     tmux send-keys -t $SESSION:0 'picn-mgmt --port 4000 newforwardingrule /the/prefix:0' C-m
     sleep .2
+
+    # Face and fwd rule from 4000 to 3001
+    tmux send-keys -t $SESSION:0 'picn-mgmt --port 4000 newface 127.0.0.1:3001:0' C-m
+    sleep .2
+    tmux send-keys -t $SESSION:0 'picn-mgmt --port 4000 newforwardingrule /the/prefix:1' C-m
+    sleep .2
+
 
 }
 

@@ -88,7 +88,7 @@ class NdnTlvEncoder(BasicEncoder):
                 return self.encode_nack(packet.name, packet.reason, packet.interest)
         if isinstance(packet, UnknownPacket):
             self.logger.info("Encode UnknownPacket")
-            return packet.wire_format
+            return packet.wire_formatz
 
     def decode(self, wire_data) -> Packet:
         """

@@ -3,7 +3,6 @@
 import multiprocessing
 import threading
 import time
-from math import pow, gcd
 from fractions import Fraction as Fr
 from PiCN.Processes import LayerProcess
 from PiCN.Packets import Name, Interest, Content, Nack, NackReason

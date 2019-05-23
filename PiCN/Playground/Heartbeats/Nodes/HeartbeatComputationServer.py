@@ -32,7 +32,7 @@ def main(args):
     encoder = ExtendedNdnTlvEncoder(log_level)
 
     # Start
-    server = PiCN.Playground.Heartbeats.Nodes.HeartbeatComputationStack(port=args.port, log_level=log_level,
+    server = PiCN.Playground.Heartbeats.Nodes.HeartbeatComputationStack(replica_id=args.id, port=args.port, log_level=log_level,
                                                                         encoder=encoder)
     server.start_forwarder()
     server.link_layer.process.join()
@@ -40,6 +40,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Heartbeat NFN Server')
+    parser.add_argument('-i', '--id', type=int, help="ID of this replica", default=1)
     parser.add_argument('-p', '--port', type=int, default=3000,
                         help="UDP port (default: 3000)")
     parser.add_argument('-l', '--logging', choices=['debug', 'info', 'warning', 'error', 'none'], type=str,

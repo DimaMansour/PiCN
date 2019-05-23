@@ -19,7 +19,7 @@ from PiCN.Logger import Logger
 
 
 class HeartbeatComputationStack(object):
-    def __init__(self, port=9500, log_level=255, encoder: ExtendedNdnTlvEncoder = ExtendedNdnTlvEncoder):
+    def __init__(self, replica_id, port=9500, log_level=255, encoder: ExtendedNdnTlvEncoder = ExtendedNdnTlvEncoder):
         # debug level
         logger = Logger("Server", log_level)
 
@@ -44,7 +44,7 @@ class HeartbeatComputationStack(object):
         self.link_layer = BasicLinkLayer([UDP4Interface(port)], face_id_table, log_level=log_level)
         self.packet_encoding_layer = HeartbeatPacketEncodingLayer(self.encoder, log_level=log_level)
         self.heartbeat_network_layer = HeartbeatNetworkLayer(log_level=log_level, interest_to_app=True)
-        self.heartbeat_computation_layer = HeartbeatComputationLayer(log_level=log_level)
+        self.heartbeat_computation_layer = HeartbeatComputationLayer(replica_id,log_level=log_level)
 
         # setup stack
         self.stack: LayerStack = LayerStack([

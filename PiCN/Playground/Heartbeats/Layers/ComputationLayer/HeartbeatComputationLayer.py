@@ -2,6 +2,7 @@ import multiprocessing
 import threading
 from math import pow
 import time
+from fractions import Fraction as Fr
 
 from PiCN.Processes import LayerProcess
 from PiCN.Packets import Name, Interest, Content, Nack, NackReason
@@ -9,8 +10,8 @@ from PiCN.Playground.Heartbeats.Layers.PacketEncoding.Heartbeat import Heartbeat
 
 
 class HeartbeatComputationLayer(LayerProcess):
-    def __init__(self, log_level=255):
-        super().__init__(logger_name="HeartbeatNFNLayer", log_level=log_level)
+    def __init__(self, replica_id, log_level=255):
+        super().__init__(logger_name="HeartbeatNFNLayer (" + str(replica_id) + ")", log_level=log_level)
 
     def data_from_higher(self, to_lower: multiprocessing.Queue, to_higher: multiprocessing.Queue, data):
         pass  # this is already the highest layer.
@@ -50,14 +51,41 @@ class HeartbeatComputationLayer(LayerProcess):
                 self.logger.info("Invalid computation expression. Return NACK.")
                 return
 
-            if self.function_name == "/the/prefix/square":
+            if self.function_name == "/the/prefix/square1":
                 # start thread to do computation
-                arguments = [packet_id, self.pinned_function_square, self.params, interest.name]
+                arguments = [packet_id, self.pinned_function_square1, self.params, interest.name]
                 t = threading.Thread(target=self.executePinnedFunction, args=arguments)
                 t.setDaemon(True)
                 t.start()
                 # start thread to send heartbeat
                 # -- TODO (here?)
+                return
+            if self.function_name == "/the/prefix/square2":
+                # start thread to do computation
+                arguments = [packet_id, self.pinned_function_square2, self.params, interest.name]
+                t = threading.Thread(target=self.executePinnedFunction, args=arguments)
+                t.setDaemon(True)
+                t.start()
+                # start thread to send heartbeat
+                # -- TODO (here?)
+                return
+            if self.function_name == "/the/prefix/fibonacci":
+                arguments = [packet_id, self.fibonacci, self.params, interest.name]
+                t = threading.Thread(target=self.executePinnedFunction, args=arguments)
+                t.setDaemon(True)
+                t.start()
+                return
+            if self.function_name == "/the/prefix/bernoulli":
+                arguments = [packet_id, self.bernoulli, self.params, interest.name]
+                t = threading.Thread(target=self.executePinnedFunction, args=arguments)
+                t.setDaemon(True)
+                t.start()
+                return
+            if self.function_name == "/the/prefix/pascal_triangle":
+                arguments = [packet_id, self.pascal_triangle, self.params, interest.name]
+                t = threading.Thread(target=self.executePinnedFunction, args=arguments)
+                t.setDaemon(True)
+                t.start()
                 return
             else:
                 self.return_nack(packet_id, interest)
@@ -100,10 +128,43 @@ class HeartbeatComputationLayer(LayerProcess):
         stop_heartbeat_event.set()
         self.logger.info("Return result for: " + interest_name.to_string())
 
-    def pinned_function_square(self, params):
+    def pinned_function_square1(self, params):
+        # TODO -- check if params contains valid parameters
+        time.sleep(30)
+        return int(pow(int(params[0]), 2))
+    def pinned_function_square2(self, params):
         # TODO -- check if params contains valid parameters
         time.sleep(10)
         return int(pow(int(params[0]), 2))
+
+
+    def fibonacci(self, params):
+        res =[]
+        x = 0
+        y = 1
+        while x < int(params[0]):
+            res.append(x)
+            x, y = y, y+x
+        return res
+
+    def bernoulli(self,params):
+        A = [0] * (int(params[0]) + 1)
+        for m in range(int(params[0])+ 1):
+            A[m] = Fr(1, m + 1)
+            for j in range(m, 0, -1):
+                A[j - 1] = j * (A[j - 1] - A[j])
+        return A[0]
+
+    def pascal_triangle(self,params):
+        rows = [[1]]
+        for i in range(int(params[0])-1):
+            last_row = rows[-1]
+            new_row = [1]
+            for i in range(len(last_row) - 1):
+                new_row.append(last_row[i] + last_row[i + 1])
+            new_row.append(1)
+            rows.append(new_row)
+        return rows
 
     def ageing(self):
         pass  # ageing not necessary
