@@ -4,7 +4,7 @@ import multiprocessing
 import threading
 import time
 from math import pow, gcd
-
+from fractions import Fraction as Fr
 from PiCN.Processes import LayerProcess
 from PiCN.Packets import Name, Interest, Content, Nack, NackReason
 
@@ -64,6 +64,24 @@ class NFNComputationLayer(LayerProcess):
                 t.setDaemon(True)
                 t.start()
                 return
+            if function_name == "/the/prefix/fibonacci":
+                arguments = [self.fibonacci, params, interest.name, packet_id]
+                t = threading.Thread(target=self.executePinnedFunction, args=arguments)
+                t.setDaemon(True)
+                t.start()
+                return
+            if function_name == "/the/prefix/bernoulli":
+                arguments = [self.bernoulli, params, interest.name, packet_id]
+                t = threading.Thread(target=self.executePinnedFunction, args=arguments)
+                t.setDaemon(True)
+                t.start()
+                return
+            if function_name == "/the/prefix/pascal_triangle":
+                arguments = [self.pascal_triangle, params, interest.name, packet_id]
+                t = threading.Thread(target=self.executePinnedFunction, args=arguments)
+                t.setDaemon(True)
+                t.start()
+                return
             # if function_name == "/the/prefix/square1":
             #     result = self.pinned_function_square1(params)
             #     self.return_result(packet_id, Content(interest.name, str(result)))  # QUESTION -- return as string?
@@ -95,6 +113,34 @@ class NFNComputationLayer(LayerProcess):
         # TODO -- check if params contains valid parameters
         time.sleep(10)
         return int(pow(int(params[0]), 2))
+
+    def fibonacci(self, params):
+        res =[]
+        x = 0
+        y = 1
+        while x < int(params[0]):
+            res.append(x)
+            x, y = y, y+x
+        return res
+
+    def bernoulli(self,params):
+        A = [0] * (int(params[0]) + 1)
+        for m in range(int(params[0])+ 1):
+            A[m] = Fr(1, m + 1)
+            for j in range(m, 0, -1):
+                A[j - 1] = j * (A[j - 1] - A[j])
+        return A[0]
+
+    def pascal_triangle(self,params):
+        rows = [[1]]
+        for i in range(int(params[0])-1):
+            last_row = rows[-1]
+            new_row = [1]
+            for i in range(len(last_row) - 1):
+                new_row.append(last_row[i] + last_row[i + 1])
+            new_row.append(1)
+            rows.append(new_row)
+        return rows
 
     def ageing(self):
         pass  # ageing not necessary
