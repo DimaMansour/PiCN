@@ -11,6 +11,8 @@ class NFNComputationLayer(LayerProcess):
     def __init__(self, replica_id, log_level=255):
         super().__init__(logger_name="NFNLayer (" + str(replica_id) + ")", log_level=log_level)
         self.storage = None
+     #counter of number of interests per replica
+    numberOfInterests = 0
 
     def data_from_higher(self, to_lower: multiprocessing.Queue, to_higher: multiprocessing.Queue, data):
         pass  # this is already the highest layer.
@@ -38,6 +40,8 @@ class NFNComputationLayer(LayerProcess):
                                                  interest=interest)])  # TODO -- choose an appropriate NACK reason
 
     def handleInterest(self, packet_id: int, interest: Interest):
+        self.numberOfInterests += 1
+        self.logger.info("number of Interests of this replica is:............" + str(self.numberOfInterests))
         components = interest.name.components
         if components[-1] == b"pNFN":
             try:
