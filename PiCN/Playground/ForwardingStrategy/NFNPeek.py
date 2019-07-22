@@ -22,7 +22,7 @@ def main(args):
 
     # Send interest packet
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.settimeout(300)
+    sock.settimeout(500)
     sock.bind(("0.0.0.0", 0))
     try:
         resolved_hostname = socket.gethostbyname(args.ip)

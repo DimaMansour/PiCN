@@ -36,7 +36,7 @@ class NFNComputationLayer(LayerProcess):
         self.queue_to_lower.put([packet_id, content])
 
     def return_nack(self, packet_id, interest: Interest):
-        self.queue_to_lower.put([packet_id, Nack(interest.name, reason=NackReason.NOT_SET,
+        self.queue_to_lower.put([packet_id, Nack(interest.name, reason=NackReason.COMP_NOT_RUNNING,
                                                  interest=interest)])  # TODO -- choose an appropriate NACK reason
 
     def handleInterest(self, packet_id: int, interest: Interest):
@@ -73,17 +73,24 @@ class NFNComputationLayer(LayerProcess):
                 t.setDaemon(True)
                 t.start()
                 return
+
             if function_name == "/the/prefix/bernoulli":
                 arguments = [self.bernoulli, params, interest.name, packet_id]
                 t = threading.Thread(target=self.executePinnedFunction, args=arguments)
                 t.setDaemon(True)
                 t.start()
                 return
+
             if function_name == "/the/prefix/pascal_triangle":
                 arguments = [self.pascal_triangle, params, interest.name, packet_id]
                 t = threading.Thread(target=self.executePinnedFunction, args=arguments)
                 t.setDaemon(True)
+                #self.start = time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID)
                 t.start()
+                #threading.get_ident()
+
+                #self.end = time.clock_gettime(time.CLOCK_THREAD_CPUTIME_ID)
+                #self.logger.info("*********************************************" + str(self.end ) )
                 return
             # if function_name == "/the/prefix/square1":
             #     result = self.pinned_function_square1(params)
@@ -127,11 +134,15 @@ class NFNComputationLayer(LayerProcess):
         return res
 
     def bernoulli(self,params):
+        t1 = time.time()
         A = [0] * (int(params[0]) + 1)
         for m in range(int(params[0])+ 1):
             A[m] = Fr(1, m + 1)
             for j in range(m, 0, -1):
                 A[j - 1] = j * (A[j - 1] - A[j])
+        t2 = time.time()
+        exectime = t2 - t1
+        self.logger.info("===============================    execution time for Bernoulli with parameter  " + str(params) + " is:  " + str(exectime))
         return A[0]
 
     def pascal_triangle(self,params):

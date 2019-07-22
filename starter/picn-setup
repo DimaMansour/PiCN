@@ -157,30 +157,40 @@ function config_dima_FS {
     # Relay on port 4000
     tmux new-window -t $SESSION:1 -n 'Relay-4000'
     tmux send-keys -t $SESSION:1 'picn-relay -l ' $LOGLEVEL ' --port 4000' C-m
-
-
-    # Start server on port 3000
-    tmux new-window -t $SESSION:3 -n 'Server1'
-    tmux send-keys -t $SESSION:3 'picn-fs-server -l ' $LOGLEVEL ' --port 3000 --id 1' C-m
-
-    # Start server on port 3001
-    tmux new-window -t $SESSION:4 -n 'Server2'
-    tmux send-keys -t $SESSION:4 'picn-fs-server -l ' $LOGLEVEL ' --port 3001 --id 2' C-m
+ # Start server on port 3000
+   # tmux new-window -t $SESSION:2 -n 'Server0'
+    #tmux send-keys -t $SESSION:2 'picn-twophase-server -l ' $LOGLEVEL ' --port 3001 --id 0' C-m
 
 
     sleep .5
+     # Face and fwd rule from 4000 to 3001
+    #tmux send-keys -t $SESSION:0 'picn-mgmt  --port 4000 newface   127.0.0.1:3001:0' C-m
+   # sleep .2
+    #tmux send-keys -t $SESSION:0 'picn-mgmt --port 4000 newforwardingrule /the/prefix:0' C-m
+    #sleep .2
 
-    # Face and fwd rule from 4000 to 3000
-    tmux send-keys -t $SESSION:0 'picn-mgmt --port 4000 newface 127.0.0.1:3000:0' C-m
+
+
+    # Face and fwd rule from 4000 to 3001
+    tmux send-keys -t $SESSION:0 'picn-mgmt --ip 192.168.1.138 --port 4000 newface   192.168.1.119:3001:0' C-m
     sleep .2
     tmux send-keys -t $SESSION:0 'picn-mgmt --port 4000 newforwardingrule /the/prefix:0' C-m
     sleep .2
 
-    # Face and fwd rule from 4000 to 3001
-    tmux send-keys -t $SESSION:0 'picn-mgmt --port 4000 newface 127.0.0.1:3001:0' C-m
+
+    # Face and fwd rule from 4000 to 3002
+     tmux send-keys -t $SESSION:0 'picn-mgmt --ip 192.168.1.138 --port 4000 newface  192.168.1.120:3002:0' C-m
     sleep .2
     tmux send-keys -t $SESSION:0 'picn-mgmt --port 4000 newforwardingrule /the/prefix:1' C-m
     sleep .2
+
+
+    # Face and fwd rule from 4000 to 3003
+    tmux send-keys -t $SESSION:0 'picn-mgmt --ip 192.168.1.138 --port 4000 newface   192.168.1.117:3003:0' C-m
+    sleep .2
+    tmux send-keys -t $SESSION:0 'picn-mgmt --port 4000 newforwardingrule /the/prefix:2' C-m
+    sleep .2
+
 
 }
 
@@ -191,8 +201,8 @@ function config_dima_FSFull {
 
 
     # Start server on port 3000
-    tmux new-window -t $SESSION:3 -n 'Server1'
-    tmux send-keys -t $SESSION:3 'picn-fs-server -l ' $LOGLEVEL ' --port 3000 --id 1' C-m
+    #tmux new-window -t $SESSION:3 -n 'Server1'
+    #tmux send-keys -t $SESSION:3 'picn-fs-server -l ' $LOGLEVEL ' --port 3000 --id 1' C-m
 
     # Start server on port 3001
     tmux new-window -t $SESSION:4 -n 'Server2'
@@ -201,20 +211,14 @@ function config_dima_FSFull {
 
     # Start server on port 3002
     tmux new-window -t $SESSION:5 -n 'Server3'
-    tmux send-keys -t $SESSION:5 'picn-fs-server -l ' $LOGLEVEL ' --port 3002 --id 3' C-m
-
-
-    # Start server on port 3003
-    tmux new-window -t $SESSION:6 -n 'Server4'
-    tmux send-keys -t $SESSION:6 'picn-fs-server -l ' $LOGLEVEL ' --port 3003 --id 4' C-m
+   tmux send-keys -t $SESSION:5 'picn-fs-server -l ' $LOGLEVEL ' --port 3002 --id 3' C-m
 
 
 
 
       sleep .5
-
     # Face and fwd rule from 4000 to 3000
-    tmux send-keys -t $SESSION:0 'picn-mgmt --port 4000 newface 127.0.0.1:3000:0' C-m
+    tmux send-keys -t $SESSION:0 'picn-mgmt --port 4000 newface 192.168.1.117:3000:0' C-m
     sleep .2
     tmux send-keys -t $SESSION:0 'picn-mgmt --port 4000 newforwardingrule /the/prefix:0' C-m
     sleep .2
@@ -226,25 +230,16 @@ function config_dima_FSFull {
     sleep .2
 
     # Face and fwd rule from 4000 to 3002
-    tmux send-keys -t $SESSION:0 'picn-mgmt --port 4000 newface 127.0.0.1:3002:0' C-m
-    sleep .2
-    tmux send-keys -t $SESSION:0 'picn-mgmt --port 4000 newforwardingrule /the/prefix:2' C-m
-    sleep .2
-
-    # Face and fwd rule from 4000 to 3003
-    tmux send-keys -t $SESSION:0 'picn-mgmt --port 4000 newface 127.0.0.1:3003:0' C-m
-    sleep .2
-    tmux send-keys -t $SESSION:0 'picn-mgmt --port 4000 newforwardingrule /the/prefix:3' C-m
-    sleep .2
+   tmux send-keys -t $SESSION:0 'picn-mgmt --port 4000 newface 127.0.0.1:3002:0' C-m
+   sleep .2
+   tmux send-keys -t $SESSION:0 'picn-mgmt --port 4000 newforwardingrule /the/prefix:2' C-m
+   sleep .2
 
 
 }
 
 
 function config_dima_FSTest {
-    # Relay on port 4000
-    tmux new-window -t $SESSION:1 -n 'Relay-4000'
-    tmux send-keys -t $SESSION:1 'picn-relay -l ' $LOGLEVEL ' --port 4000' C-m
 
     # Relay on port 4001
     tmux new-window -t $SESSION:2 -n 'Relay-4001'
@@ -254,22 +249,10 @@ function config_dima_FSTest {
     tmux new-window -t $SESSION:3 -n 'Server1'
     tmux send-keys -t $SESSION:3 'picn-nfn -l ' $LOGLEVEL ' --port 3000 --id 1' C-m
 
-    # Start server on port 3001
-    tmux new-window -t $SESSION:4 -n 'Server2'
-    tmux send-keys -t $SESSION:4 'picn-nfn -l ' $LOGLEVEL ' --port 3001 --id 2' C-m
-
-     # Start server on port 3002
-    tmux new-window -t $SESSION:5 -n 'Server3'
-    tmux send-keys -t $SESSION:5 'picn-nfn -l ' $LOGLEVEL ' --port 3002 --id 3' C-m
 
 
     sleep .5
 
-    # Face and fwd rule from 4001 to 4000
-    tmux send-keys -t $SESSION:0 'picn-mgmt --port 4001 newface 127.0.0.1:4000:0' C-m
-    sleep .2
-    tmux send-keys -t $SESSION:0 'picn-mgmt --port 4001 newforwardingrule /the/prefix:0' C-m
-    sleep .2
 
     # Face and fwd rule from 4000 to 3000
     tmux send-keys -t $SESSION:0 'picn-mgmt --port 4000 newface 127.0.0.1:3000:0' C-m

@@ -25,7 +25,7 @@ class BasicICNLayer(LayerProcess):
         self.pit = pit
         self.fib = fib
         self.rib = rib
-        self._ageing_interval: int = 200
+        self._ageing_interval: int = 500
         self._interest_to_app: bool = False
 
     def data_from_higher(self, to_lower: multiprocessing.Queue, to_higher: multiprocessing.Queue, data):
@@ -187,7 +187,7 @@ class BasicICNLayer(LayerProcess):
             # for fib_face in cur_fib_entry.faceid:
             #     if fib_face in cur_pit_entry.fib_faces_already_used:
             #         continue
-            # self.pit.add_used_fib_face(nack.name,cur_pit_entry.fib_faces_already_used) #add current face to used list, modiefies pit entry in pit
+            self.pit.add_used_fib_face(nack.name,cur_pit_entry.fib_faces_already_used) #add current face to used list, modiefies pit entry in pit
             pit_entry = self.pit.find_pit_entry(nack.name) #read modified entry from pit
             fib_entry = self.fib.find_fib_entry(nack.name,pit_entry.fib_faces_already_used, pit_entry.faceids) #read new fib entry
             if fib_entry is None or fib_entry.faceid == [face_id]: #FIXME WHAT IS THE RIGHT CONDITION HERE?
@@ -219,15 +219,19 @@ class BasicICNLayer(LayerProcess):
             else:
                 self.logger.info("Try using next FIB path with FaceID: " + str(fib_entry.faceid))
                 pit_occupancy = self.pit.occupancy_available_faces_per_name(fib_entry)
+                self.logger.info("pit_occupancy: " + str(pit_occupancy))
                 sorted_pit_occupancy = sorted(pit_occupancy.items(), key=lambda kv: kv[1])
                 faces_sorted_by_occupancy = list(map(lambda kv: kv[0], sorted_pit_occupancy))
+                self.logger.info("faces_sorted_by_occupancy : " + str(faces_sorted_by_occupancy))
                 for fid in faces_sorted_by_occupancy:
                     if not self.pit.test_faceid_was_nacked(pit_entry.name, fid):
-                        self.pit.update_timestamp(pit_entry)
+                        self.pit.add_pit_entry(pit_entry.interest.name, face_id, fid, pit_entry.interest, local_app=from_local)
+                        #self.pit.update_timestamp(pit_entry)
                         self.pit.add_outgoing_face(pit_entry.name, fid)
                         self.pit.increase_number_of_forwards(pit_entry.name)
                         self.pit.add_used_fib_face(pit_entry.name, [fid])
                         to_lower.put([fid, pit_entry.interest])
+                        self.logger.info("the interest :" + str(pit_entry.interest.name) + "is sent to : " + str(fid))
                         break
 
     def ageing(self):
