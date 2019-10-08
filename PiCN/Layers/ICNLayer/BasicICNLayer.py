@@ -1,3 +1,4 @@
+
 """Basic ICN Forwarding Layer"""
 
 import multiprocessing
@@ -25,7 +26,7 @@ class BasicICNLayer(LayerProcess):
         self.pit = pit
         self.fib = fib
         self.rib = rib
-        self._ageing_interval: int = 500
+        self._ageing_interval: int = 20000
         self._interest_to_app: bool = False
 
     def data_from_higher(self, to_lower: multiprocessing.Queue, to_higher: multiprocessing.Queue, data):

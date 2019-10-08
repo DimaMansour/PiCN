@@ -8,7 +8,7 @@ from PiCN.Layers.ICNLayer.PendingInterestTable.BasePendingInterestTable import B
 from PiCN.Layers.ICNLayer.ForwardingInformationBase import ForwardingInformationBaseEntry
 from PiCN.Packets import Interest, Name
 from typing import List, Dict
-
+import random
 
 class PendingInterstTableMemoryExact(BasePendingInterestTable):
     """in-memory Pending Interest Table using exact prefix matching"""
@@ -67,7 +67,9 @@ class PendingInterstTableMemoryExact(BasePendingInterestTable):
     def occupancy_available_faces_per_name(self, fib_entry: ForwardingInformationBaseEntry) -> Dict:
         dict_of_faces_with_occupancy ={}
         fib_components = fib_entry.name.string_components
-        for fib_face in fib_entry.faceid:
+        face_ids = fib_entry.faceid
+        random.shuffle(face_ids)
+        for fib_face in face_ids:
             number_of_appearance_in_pit = 0
             for pit_entry in self.container:
                 if fib_face not in pit_entry.outgoing_faces:
